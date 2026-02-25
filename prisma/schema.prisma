@@ -1,0 +1,150 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Song {
+  id           String        @id @default(cuid())
+  title        String
+  artist       String?
+  inputType    InputType
+  rawLyrics    String        @db.Text
+  sourceUrl    String?
+  slug         String        @unique
+  isPublic     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  translations Translation[]
+  ratings      Rating[]
+  jobs         Job[]
+
+  @@index([artist])
+  @@index([createdAt])
+}
+
+model Translation {
+  id                String   @id @default(cuid())
+  songId            String
+  song              Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+  plainTranslation  String   @db.Text
+  lineByLine        Json     // Array of {original, translation, flaggedTerms}
+  culturalContext   String   @db.Text
+  unknownTerms      Json     // Array of {term, provisionalDefinition, confidence}
+  genreConfidence   Float    @default(0)
+  overallConfidence Float    @default(0)
+  createdAt         DateTime @default(now())
+
+  @@index([songId])
+}
+
+model Job {
+  id         String    @id @default(cuid())
+  songId     String?
+  song       Song?     @relation(fields: [songId], references: [id], onDelete: SetNull)
+  status     JobStatus @default(PENDING)
+  inputType  InputType
+  payload    Json      // { lyrics?, audioUrl?, youtubeUrl? }
+  attempts   Int       @default(0)
+  error      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model KBEntry {
+  id           String       @id @default(cuid())
+  term         String       @unique
+  definition   String       @db.Text
+  origin       String?
+  example      String?
+  confidence   Float        @default(1.0)
+  isApproved   Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  flags        Flag[]
+  candidates   KBCandidate[]
+
+  @@index([term])
+}
+
+model KBCandidate {
+  id                  String    @id @default(cuid())
+  term                String
+  provisionalDefinition String  @db.Text
+  confidence          Float     @default(0.5)
+  sourceSongId        String?
+  kbEntryId           String?
+  kbEntry             KBEntry?  @relation(fields: [kbEntryId], references: [id])
+  status              CandidateStatus @default(PENDING)
+  createdAt           DateTime  @default(now())
+
+  @@index([status])
+}
+
+model Flag {
+  id        String   @id @default(cuid())
+  kbEntryId String
+  kbEntry   KBEntry  @relation(fields: [kbEntryId], references: [id], onDelete: Cascade)
+  reason    String   @db.Text
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([kbEntryId])
+}
+
+model Contribution {
+  id         String             @id @default(cuid())
+  term       String
+  definition String             @db.Text
+  example    String?
+  status     ContributionStatus @default(PENDING)
+  ip         String?
+  createdAt  DateTime           @default(now())
+
+  @@index([status])
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  songId    String
+  song      Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+  stars     Int      // 1-5
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([songId])
+}
+
+enum InputType {
+  TYPED
+  AUDIO
+  YOUTUBE
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETE
+  FAILED
+}
+
+enum CandidateStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ContributionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
