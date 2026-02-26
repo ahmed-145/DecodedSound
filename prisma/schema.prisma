@@ -39,6 +39,8 @@ model Translation {
   unknownTerms      Json     // Array of {term, provisionalDefinition, confidence}
   genreConfidence   Float    @default(0)
   overallConfidence Float    @default(0)
+  aiModelVersion    String?
+  processingTimeMs  Int?
   createdAt         DateTime @default(now())
 
   @@index([songId])

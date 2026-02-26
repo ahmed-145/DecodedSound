@@ -17,5 +17,15 @@ export async function POST(
         data: { kbEntryId: params.id, reason: reason.trim(), ip },
     })
 
+    // PRD US-12: 3+ flags auto-downgrade entry to Unverified
+    const flagCount = await prisma.flag.count({ where: { kbEntryId: params.id } })
+    if (flagCount >= 3 && entry.isApproved) {
+        await prisma.kBEntry.update({
+            where: { id: params.id },
+            data: { isApproved: false },
+        })
+        return NextResponse.json({ message: 'Flag submitted. Entry has been auto-downgraded pending review.' })
+    }
+
     return NextResponse.json({ message: 'Flag submitted. Our team will review it.' })
 }

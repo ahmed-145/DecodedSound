@@ -16,19 +16,27 @@ export default function Home() {
   const [error, setError] = useState('')
   const [transcription, setTranscription] = useState('')
   const [audioSongId, setAudioSongId] = useState('')
+  // PRD US-06: genre warning state
+  const [genreWarning, setGenreWarning] = useState<{ message: string; confidence: number } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const handleTypedTranslate = async () => {
+  const handleTypedTranslate = async (overrideGenre = false) => {
     if (!lyrics.trim()) return setError('Paste some lyrics first.')
-    setLoading(true); setError('')
+    setLoading(true); setError(''); setGenreWarning(null)
     try {
       const res = await fetch('/api/translate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lyrics, title, artist }),
+        body: JSON.stringify({ lyrics, title, artist, overrideGenreWarning: overrideGenre }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
+      // PRD US-06: if genre warning returned (non-SDK detected), show warning before proceeding
+      if (data.genreWarning && !overrideGenre) {
+        setGenreWarning({ message: data.message, confidence: data.genreConfidence })
+        setLoading(false)
+        return
+      }
       router.push(`/song/${data.slug}`)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Something went wrong.')
@@ -224,11 +232,40 @@ export default function Home() {
             </div>
           )}
 
+          {/* PRD US-06: Genre warning banner — non-SDK detected */}
+          {genreWarning && (
+            <div className="p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 text-sm space-y-3">
+              <div className="flex items-start gap-2">
+                <span className="text-lg">🎵</span>
+                <div>
+                  <p className="font-semibold">Doesn&apos;t look like SDK music</p>
+                  <p className="text-yellow-400/80 text-xs mt-0.5">
+                    Our AI specialises in SDK / Cape Flats music — this looks like something else ({Math.round((1 - genreWarning.confidence) * 100)}% SDK confidence).
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleTypedTranslate(true)}
+                  className="px-4 py-2 rounded-lg bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 text-xs font-medium transition-colors"
+                >
+                  Try anyway
+                </button>
+                <button
+                  onClick={() => setGenreWarning(null)}
+                  className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 text-xs font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Translate button */}
           {tab === 'typed' && (
             <button
               id="btn-translate"
-              onClick={handleTypedTranslate}
+              onClick={() => handleTypedTranslate()}
               disabled={loading || !lyrics.trim()}
               className="w-full py-4 rounded-xl text-base font-semibold text-white transition-all
                 bg-gradient-to-r from-ds-accent to-ds-purple

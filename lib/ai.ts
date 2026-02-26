@@ -150,3 +150,49 @@ export async function groqChat(prompt: string, systemPrompt?: string): Promise<s
     })
     return completion.choices[0]?.message?.content ?? ''
 }
+
+
+// ── Genre Detection ───────────────────────────────────────────────────────────
+// PRD Section 10, Step 7: classify SDK vs non-SDK before every translation.
+// >0.85 non-SDK confidence → warn user. <0.6 SDK → disclaimer banner.
+export async function detectGenre(lyrics: string): Promise<{ isSDK: boolean; confidence: number }> {
+    const completion = await groqClient.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+            {
+                role: 'system',
+                content: `You are a music genre classifier specialised in South African music. Your only task is to determine whether a given set of lyrics is from SDK (Esdeekid / EsDeeKid) / Cape Flats music or not.
+
+SDK music characteristics:
+- Cape Flats Afrikaans dialect (Cape Town)
+- Kaaps slang terms (g, mandem, bra, kwaai, lekker, skolly, etc.)
+- Afrikaans words mixed with English
+- References to Cape Town, Cape Flats, Mitchells Plain, Kraaifontein, etc.
+- Phonetic wordplay and coded double meanings
+
+Respond ONLY with a JSON object, no explanation:
+{"isSDK": boolean, "confidence": number}
+confidence is 0.0 to 1.0 — how confident this IS SDK music (not how confident it's not SDK).`
+            },
+            {
+                role: 'user',
+                content: `Classify these lyrics:\n\n${lyrics.slice(0, 800)}`
+            }
+        ],
+        temperature: 0.1,
+        max_tokens: 64,
+        response_format: { type: 'json_object' },
+    })
+
+    const text = completion.choices[0]?.message?.content ?? ''
+    try {
+        const result = JSON.parse(text)
+        return {
+            isSDK: Boolean(result.isSDK),
+            confidence: Number(result.confidence ?? 0.5),
+        }
+    } catch {
+        // Default: assume SDK if we can't parse (fail open)
+        return { isSDK: true, confidence: 0.5 }
+    }
+}
