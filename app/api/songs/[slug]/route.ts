@@ -3,10 +3,11 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { slug: string } }
+    { params }: { params: Promise<{ slug: string }> }
 ) {
+    const { slug } = await params
     const song = await prisma.song.findUnique({
-        where: { slug: params.slug },
+        where: { slug },
         include: {
             translations: { orderBy: { createdAt: 'desc' }, take: 1 },
             ratings: { select: { stars: true } },

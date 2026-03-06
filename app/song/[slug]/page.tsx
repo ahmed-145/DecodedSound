@@ -3,11 +3,11 @@ import { prisma } from '@/lib/prisma'
 import SongPageClient from './SongPageClient'
 
 interface Props {
-    params: { slug: string }
+    params: Promise<{ slug: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const { slug } = params
+    const { slug } = await params
 
     try {
         const song = await prisma.song.findUnique({
@@ -42,6 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 }
 
-export default function SongPage({ params }: Props) {
-    return <SongPageClient slug={params.slug} />
+export default async function SongPage({ params }: Props) {
+    const { slug } = await params
+    return <SongPageClient slug={slug} />
 }
