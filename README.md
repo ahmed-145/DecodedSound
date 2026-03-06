@@ -1,58 +1,154 @@
 <div align="center">
 
-# 🎵 DecodedSound
+<br>
 
-### SDK / Esdeekid Music — Cultural Translation Engine
+<img src="https://img.shields.io/badge/🎵_DecodedSound-Cape_Flats_Culture-ff6b35?style=for-the-badge&labelColor=1a1a2e" alt="DecodedSound" />
 
-*Translating the coded language of the Cape Flats, South Africa into plain, accessible English*
+<br><br>
 
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://typescriptlang.org)
-[![Groq](https://img.shields.io/badge/Groq-LLaMA%203.3%2070B-orange)](https://groq.com)
-[![Prisma](https://img.shields.io/badge/Prisma-5-2D3748?logo=prisma)](https://prisma.io)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+# DecodedSound
+
+**AI-Powered Cultural Translator for SDK Music**
+
+*The Cape Flats speak a language the world doesn't understand yet. We're changing that.*
+
+<br>
+
+[![Next.js 15](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![Groq LLaMA](https://img.shields.io/badge/Groq-LLaMA%203.3%2070B-F55036?style=flat-square)](https://groq.com)
+[![Prisma](https://img.shields.io/badge/Prisma-5-2D3748?style=flat-square&logo=prisma)](https://prisma.io)
+[![KB Terms](https://img.shields.io/badge/KB-502%20terms-4ade80?style=flat-square)](#knowledge-base)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
 </div>
 
 ---
 
-## What Is This?
+## The Problem
 
-SDK (Esdeekid) music is a genre born in the Cape Flats of Cape Town, South Africa. It's rapped in a coded mix of **Cape Flats Afrikaans**, Kaaps slang, Xhosa borrowings, and Cape Malay vocabulary — a language that's deliberately hard to understand if you're not from there.
+**SDK (Esdeekid)** is a music genre from the **Cape Flats** — a sprawling area of gang-heavy communities southeast of Cape Town, South Africa. It's rapped in a hyper-coded mix of:
 
-**DecodedSound** is an AI platform that translates this music into plain English, with 4 output panels per song:
+- 🔤 **Cape Flats Afrikaans** (Kaaps) — not standard Afrikaans
+- 🔀 **Xhosa borrowings** — township language mixing
+- 🕌 **Cape Malay vocabulary** — centuries of cultural fusion
+- 🔒 **Prison gang codes** — 26s, 27s, 28s terminology
+- 🤫 **Street slang** — deliberately opaque to outsiders
 
-| Panel | What it does |
+> *"Hy's 'n real g vannie Flats, hy jaag die paper met die mandem"*
+>
+> Translation: *"He's a real gangster from the Flats, he chases money with his crew"*
+
+**No translator, dictionary, or AI model understands this language.** Until now.
+
+---
+
+## What DecodedSound Does
+
+Paste lyrics, upload audio, or drop a YouTube link → Get 4 panels of cultural translation:
+
+| Panel | What You Get |
 |---|---|
-| 📝 Plain Translation | The full song in natural English prose |
-| 🔤 Line-by-Line | Annotated breakdown with slang flags per line |
-| 📖 Slang Dictionary | Unknown terms the AI flagged, with confidence scores |
-| 🏙️ Cultural Context | 2-4 paragraph narrative for someone with zero Cape Flats knowledge |
+| 📝 **Plain Translation** | Full song rendered in natural English prose |
+| 🔤 **Line-by-Line** | Every line annotated with slang flags + hover tooltips from the KB |
+| 📖 **Slang Dictionary** | Unknown terms the AI flagged, with confidence scores |
+| 🏙️ **Cultural Context** | 2-4 paragraph narrative explaining the Cape Flats world behind the lyrics |
 
-**3 ways to get lyrics in:**
-- ✍️ Paste lyrics directly
-- 🎵 Upload an audio file (MP3, WAV, M4A)
-- 📺 Paste a YouTube link (auto-downloads + transcribes via Whisper)
+### 3 Input Methods
+
+| Method | How | Tech |
+|---|---|---|
+| ✍️ **Typed Lyrics** | Paste directly | Groq LLaMA 3.3 70B |
+| 🎵 **Audio Upload** | MP3, WAV, M4A | Groq Whisper → LLaMA |
+| 📺 **YouTube Link** | Paste URL | yt-dlp → Whisper → LLaMA |
+
+> **YouTube Cache:** Previously translated URLs are served instantly from the database — no re-download needed.
 
 ---
 
 ## Tech Stack
 
-| Layer | Tech | Notes |
+| Layer | Technology | Why This |
 |---|---|---|
-| Framework | **Next.js 14** (App Router) | Node 18 compatible |
-| Language | **TypeScript** | |
-| Database | **PostgreSQL 16** (Docker) | Port 5433 locally |
-| ORM | **Prisma 5** | Type-safe, 7 models |
-| Translation AI | **Groq LLaMA 3.3 70B** | 14,400 req/day free tier |
-| Transcription | **Groq Whisper Large v3** | `language: af` for Cape Flats phonetics |
-| YouTube | **yt-dlp** | Downloads `.webm` natively — no ffmpeg needed |
-| Styling | **Tailwind CSS v3** | |
-| Deployment | **Vercel** | Cron worker included |
+| **Framework** | Next.js 15 (App Router) | SSR + API routes in one repo |
+| **Language** | TypeScript | Type-safe, Prisma-native |
+| **Database** | PostgreSQL 16 (Docker) | Relational data, raw SQL for analytics |
+| **ORM** | Prisma 5 | 8 models, type-safe queries |
+| **Translation AI** | Groq LLaMA 3.3 70B | 14,400 req/day free, `json_object` mode = no markdown leakage |
+| **Transcription** | Groq Whisper Large v3 | `language: 'af'` — captures Cape Flats phonetics correctly |
+| **YouTube** | yt-dlp | Downloads `.webm` natively — **no ffmpeg needed** |
+| **Styling** | Tailwind CSS v3 | Dark glassmorphism theme |
+| **Rate Limiting** | In-memory sliding window | Per-IP, auto-cleanup, 3 tiers |
+| **Deployment** | Vercel + Supabase | Free tier, cron worker included |
 
-> **Why Groq for translation?** Groq's free tier gives 14,400 requests/day at 6,000 RPM. That's effectively unlimited for v1.0. The `response_format: json_object` mode guarantees clean JSON output with no markdown leakage.
+<details>
+<summary><b>Why Groq over Gemini?</b></summary>
 
-> **Why Whisper with `language: af`?** YouTube auto-captions for SDK music auto-translate Cape Flats Afrikaans to broken English. Whisper with the Afrikaans language hint captures the actual phonetics — `marapagik`, `liggen tele by die grafik`, `addik` — correctly.
+We started with Gemini 2.0 Flash. Hit the daily quota (1,500 req/day, 15 RPM) during debugging — got locked out for 45+ minutes. Groq gives 14,400 req/day at 6,000 RPM. Both are behind `lib/ai.ts` — swapping is a one-file change.
+</details>
+
+<details>
+<summary><b>Why Whisper instead of YouTube captions?</b></summary>
+
+YouTube auto-captions auto-translate Cape Flats Afrikaans to broken English: *"liggen tele by die grafik"* → *"running for running in the car"*. Completely useless. Whisper with `language: 'af'` captures the actual phonetics.
+</details>
+
+---
+
+## Knowledge Base
+
+DecodedSound ships with **502 hand-curated slang terms** across 12 categories:
+
+> Core SDK slang · Money & hustle · People & reputation · Streets & places · Substances · Violence & danger · Gang culture & loyalty · Emotions · Music terms · Lifestyle · Cape Malay vocabulary · Prison gang terminology
+
+The KB is a **living system**, not a static dictionary:
+
+```
+User translates song
+    → AI uses 500+ KB terms as context (better translations)
+    → AI flags unknown terms with confidence scores
+    → Unknown terms → KBCandidate table
+    → Admin reviews → approve/reject
+    → Approved terms join the KB
+    → Community can contribute terms via /kb page
+    → 3+ flags on any term → auto-downgraded pending review
+```
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    Frontend (Next.js 15)             │
+│  /           /song/[slug]    /library    /kb  /admin │
+└───────────────────────┬─────────────────────────────┘
+                        │
+┌───────────────────────▼─────────────────────────────┐
+│                   API Routes (12)                     │
+│  translate · audio · youtube · songs · kb · ratings   │
+│  reverse · admin · worker · songs/[slug] · kb/flag    │
+└───────┬──────────┬───────────────┬──────────────────┘
+        │          │               │
+   ┌────▼────┐ ┌───▼───┐   ┌──────▼──────┐
+   │ Groq AI │ │yt-dlp │   │ PostgreSQL  │
+   │ LLaMA   │ │       │   │ 8 models    │
+   │ Whisper │ │ .webm │   │ 4 enums     │
+   └─────────┘ └───────┘   └─────────────┘
+```
+
+### Data Models
+
+| Model | Purpose |
+|---|---|
+| `Song` | Lyrics, source URL, slug, input type |
+| `Translation` | 4-panel JSON output, confidence scores, AI model version |
+| `Job` | Async processing queue for audio/YouTube |
+| `KBEntry` | Approved slang terms (502 seeded) |
+| `KBCandidate` | AI-discovered terms pending review |
+| `Contribution` | Community-submitted terms |
+| `Rating` | 1-5 stars per song (IP-deduplicated, `@@unique`) |
+| `Flag` | Community reports on KB inaccuracies |
 
 ---
 
@@ -61,213 +157,188 @@ SDK (Esdeekid) music is a genre born in the Cape Flats of Cape Town, South Afric
 ```
 app/
 ├── app/
-│   ├── page.tsx                    # Home — 3-tab input (typed/audio/youtube)
-│   ├── song/[slug]/page.tsx        # 4-panel translation result
-│   ├── library/page.tsx            # Public song library with search
-│   ├── kb/page.tsx                 # Slang knowledge base browser
+│   ├── page.tsx                    # Home — 3-tab input + reverse translation toggle
+│   ├── song/[slug]/
+│   │   ├── page.tsx                # Dynamic OG metadata for social sharing
+│   │   └── SongPageClient.tsx      # 4-panel results + KB tooltips + ratings
+│   ├── library/page.tsx            # Song library with search + pagination
+│   ├── kb/page.tsx                 # KB browser + community contributions
+│   ├── admin/page.tsx              # Admin dashboard + moderation + low-rated songs
 │   └── api/
-│       ├── translate/route.ts      # POST — translate typed lyrics
-│       ├── audio/route.ts          # POST — transcribe + save audio
-│       ├── youtube/route.ts        # POST — download + transcribe YouTube
-│       ├── songs/route.ts          # GET  — song library + search
-│       ├── songs/[slug]/route.ts   # GET  — single song with translation
-│       ├── kb/route.ts             # GET/POST — KB browse + contribute
-│       ├── kb/[id]/flag/route.ts   # POST — flag a KB entry
-│       ├── ratings/route.ts        # POST — rate a song 1-5 stars
-│       └── worker/route.ts         # GET  — Vercel cron job processor
+│       ├── translate/route.ts      # POST — lyrics → 4-panel translation
+│       ├── audio/route.ts          # POST — audio file → Whisper → save
+│       ├── youtube/route.ts        # POST — URL → yt-dlp → Whisper (+ cache)
+│       ├── songs/route.ts          # GET  — paginated library + search
+│       ├── songs/[slug]/route.ts   # GET  — single song + avg rating
+│       ├── kb/route.ts             # GET/POST — browse + contribute
+│       ├── kb/[id]/flag/route.ts   # POST — flag + auto-downgrade at 3
+│       ├── ratings/route.ts        # POST — 1-5 stars (upsert, IP-unique)
+│       ├── reverse/route.ts        # POST — English → SDK translation
+│       ├── admin/route.ts          # GET/POST — dashboard + moderation
+│       └── worker/route.ts         # GET  — cron job processor
+├── components/
+│   ├── InputTabs.tsx               # Typed/audio/YouTube tab switcher + clear
+│   ├── ReverseMode.tsx             # English → SDK UI
+│   ├── StatsRow.tsx                # Stats display
+│   └── SlangPill.tsx               # KB term hover tooltip component
 ├── lib/
-│   ├── ai.ts                       # All AI calls (Groq LLaMA + Whisper)
-│   ├── ytdlp.ts                    # yt-dlp wrapper
+│   ├── ai.ts                       # All AI calls (translate, reverse, genre detect)
+│   ├── ytdlp.ts                    # yt-dlp wrapper with binary discovery
 │   ├── prisma.ts                   # Prisma client singleton
+│   ├── rateLimit.ts                # Sliding-window IP rate limiter (3 tiers)
 │   └── utils.ts                    # Slug generation, helpers
 ├── prisma/
-│   ├── schema.prisma               # 7 models, 4 enums
-│   ├── seed.ts                     # 20 seed KB terms
-│   └── migrations/                 # init migration
+│   ├── schema.prisma               # 8 models, 4 enums, @@unique constraints
+│   └── seed.ts                     # 502 curated SDK/Kaaps slang terms
 └── docs/
-    ├── build-log.md                # Full build story + all bugs + decisions
+    ├── build-log.md                # Full build story — every bug, every decision
     ├── architecture.md             # System design, AI layer, DB schema
-    └── setup.md                    # Local dev setup + all API routes
+    └── setup.md                    # Local dev setup + API reference
 ```
 
 ---
 
-## Local Setup
+## Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ (`node --version`)
-- Docker (`docker --version`)
-- A [Groq API key](https://console.groq.com) (free)
-
-### 1. Install yt-dlp
+- **Node.js 18+** · **Docker** · **[Groq API key](https://console.groq.com)** (free, no credit card)
 
 ```bash
+# 1. Install yt-dlp (for YouTube input)
 pip3 install yt-dlp
-```
 
-### 2. Install dependencies
-
-```bash
+# 2. Install dependencies
 npm install --legacy-peer-deps
-```
 
-### 3. Configure environment
+# 3. Configure environment
+cp .env.example .env.local
+# Edit .env.local with your GROQ_API_KEY
 
-Create `.env.local`:
-
-```env
-DATABASE_URL="postgresql://decodedsound:decodedsound_pass@localhost:5433/decodedsound"
-GROQ_API_KEY="your-groq-key-here"
-GEMINI_API_KEY=""
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-WORKER_SECRET="any-secret-string"
-```
-
-Get your free Groq key at [console.groq.com](https://console.groq.com) — no credit card needed.
-
-### 4. Start the database
-
-```bash
+# 4. Start database
 docker compose up -d
-```
 
-> **Note:** Docker maps to port 5433 (not 5432) because most machines already have a local Postgres on 5432.
+# 5. Run migrations + seed 502 KB terms
+npx prisma migrate deploy
+npx tsx prisma/seed.ts
 
-### 5. Run migrations + seed
-
-```bash
-DATABASE_URL="postgresql://decodedsound:decodedsound_pass@localhost:5433/decodedsound" \
-  npx prisma migrate deploy
-
-DATABASE_URL="postgresql://decodedsound:decodedsound_pass@localhost:5433/decodedsound" \
-  npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed.ts
-```
-
-### 6. Start the dev server
-
-```bash
+# 6. Start dev server
 npm run dev
+# → http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+### Environment Variables
 
----
-
-## Pages
-
-| Route | Description |
-|---|---|
-| `/` | Home — paste lyrics, upload audio, or enter a YouTube link |
-| `/song/[slug]` | 4-panel translation result for a specific song |
-| `/library` | Browse all translated songs with search |
-| `/kb` | Browse + contribute to the slang knowledge base |
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | ✅ | PostgreSQL connection string |
+| `GROQ_API_KEY` | ✅ | Powers translation (LLaMA) + transcription (Whisper) |
+| `ADMIN_SECRET` | Prod only | Protects `/admin` panel |
+| `WORKER_SECRET` | Prod only | Protects cron endpoint |
+| `NEXT_PUBLIC_APP_URL` | No | Base URL for share links |
 
 ---
 
 ## API Reference
 
-| Method | Endpoint | Description |
+| Method | Endpoint | Description | Auth |
+|---|---|---|---|
+| `POST` | `/api/translate` | Translate lyrics → 4-panel JSON | Rate limited |
+| `POST` | `/api/audio` | Transcribe audio via Whisper | Rate limited |
+| `POST` | `/api/youtube` | YouTube → yt-dlp → Whisper (cached) | Rate limited |
+| `POST` | `/api/reverse` | English → SDK reverse translation | Rate limited |
+| `GET` | `/api/songs` | Song library (`?q=search&page=1`) | Public |
+| `GET` | `/api/songs/[slug]` | Single song + translation + rating | Public |
+| `GET` | `/api/kb` | Browse approved KB terms | Public |
+| `POST` | `/api/kb` | Submit community term | Rate limited |
+| `POST` | `/api/kb/[id]/flag` | Flag a KB entry (3 flags = auto-downgrade) | Public |
+| `POST` | `/api/ratings` | Rate 1-5 stars (IP-deduplicated) | Public |
+| `GET` | `/api/admin` | Dashboard stats + moderation data | `x-admin-secret` |
+| `POST` | `/api/admin` | Approve/reject candidates, delete flags | `x-admin-secret` |
+
+### Rate Limits (per IP)
+
+| Tier | Window | Max | Routes |
+|---|---|---|---|
+| Heavy | 60s | 10 | translate, reverse |
+| Audio | 60s | 5 | audio, youtube |
+| Write | 60s | 30 | kb, ratings |
+
+---
+
+## Pages
+
+| Route | What | Features |
 |---|---|---|
-| `POST` | `/api/translate` | Translate lyrics → 4-panel JSON |
-| `POST` | `/api/audio` | Transcribe audio file via Whisper |
-| `POST` | `/api/youtube` | Download YouTube audio + transcribe |
-| `GET` | `/api/songs` | Song library (`?q=search&page=1`) |
-| `GET` | `/api/songs/[slug]` | Single song + translation |
-| `GET` | `/api/kb` | Browse approved KB terms |
-| `POST` | `/api/kb` | Submit community term contribution |
-| `POST` | `/api/kb/[id]/flag` | Flag a KB entry for review |
-| `POST` | `/api/ratings` | Rate a song 1-5 stars |
-| `GET` | `/api/worker` | Cron job — processes async jobs |
+| `/` | **Home** | 3-tab input, reverse translation toggle, genre detection warning, clear button |
+| `/song/[slug]` | **Song Result** | 4 translation panels, KB hover tooltips, star ratings, share, dynamic OG |
+| `/library` | **Song Library** | Search, pagination, confidence badges, rating display |
+| `/kb` | **Slang KB** | Browse 500+ terms, community contributions, flag system |
+| `/admin` | **Admin Panel** | Stats dashboard, KB candidate review, flag management, low-rated songs |
 
 ---
 
-## Deployment (Vercel)
+## Deploy to Production
 
-1. Push to GitHub (already done)
-2. Create a new project at [vercel.com](https://vercel.com) and import this repo
-3. Set environment variables in the Vercel dashboard:
-   - `DATABASE_URL` → your Supabase/Neon connection string
-   - `GROQ_API_KEY` → your Groq key
-   - `WORKER_SECRET` → any secret string
-4. Deploy
+```bash
+# 1. Push to GitHub
+git push origin main
 
-The cron job (`/api/worker`) is pre-configured in `vercel.json` to run every 60 seconds on Vercel's free tier.
+# 2. Import to Vercel → set env vars:
+#    DATABASE_URL    → Supabase/Neon connection string
+#    GROQ_API_KEY    → your Groq key
+#    ADMIN_SECRET    → any secret for admin auth
+#    WORKER_SECRET   → any secret for cron
 
----
-
-## Knowledge Base
-
-DecodedSound ships with 20 seed KB terms covering common SDK/Cape Flats slang. The AI:
-
-1. **Uses** approved KB terms as context before translating (better accuracy)
-2. **Extracts** unknown terms it encounters into a `KBCandidate` table
-3. **Promotes** candidates to the main KB after admin review
-
-Community members can contribute new terms via `/kb` → each submission goes into a moderation queue.
-
----
-
-## How the AI Works
-
-```
-Lyrics (any input) → Groq LLaMA 3.3 70B
-      │
-      ├─ System prompt: DecodedSound cultural translator
-      ├─ KB context: up to 200 approved slang terms injected
-      ├─ response_format: json_object (guaranteed clean JSON)
-      │
-      └─ Output:
-           plainTranslation   — full song in plain English
-           lineByLine[]       — one entry per line with flaggedTerms
-           culturalContext    — narrative for outsiders
-           unknownTerms[]     — new slang with confidence scores
-           genreConfidence    — 0.0–1.0 how SDK this is
-           overallConfidence  — 0.0–1.0 translation quality
-
-YouTube URL → yt-dlp (.webm download, no ffmpeg)
-           → Groq Whisper Large v3 (language: af)
-           → Actual Cape Flats phonetics (not YouTube's broken auto-captions)
-           → LLaMA translation
+# 3. Deploy — cron worker pre-configured in vercel.json
 ```
 
 ---
 
-## Environment Variables
+## PRD Status
 
-| Variable | Required | Description |
-|---|---|---|
-| `DATABASE_URL` | ✅ | PostgreSQL connection string |
-| `GROQ_API_KEY` | ✅ | Translation (LLaMA) + transcription (Whisper) |
-| `GEMINI_API_KEY` | No | Reserved for future use |
-| `NEXT_PUBLIC_APP_URL` | No | Base URL for share links |
-| `WORKER_SECRET` | No | Protects `/api/worker` in production |
+> Built against PRD v3.3 · Currently in **Weeks 7-8 (KB & Community)** with Phase 2 completed ahead of schedule
 
----
+| Phase | Status |
+|---|---|
+| Phase 0 — Setup, DB, scaffolding | ✅ Complete |
+| Phase 1 — MVP (translate, audio, YouTube, library, KB) | ✅ Complete |
+| Phase 2 — English → SDK reverse translation | ✅ Complete (ahead of schedule) |
+| Admin panel + rate limiting | ✅ Complete (not in original PRD) |
+| KB seeded to 500+ terms | ✅ 502 terms |
+| God-mode test pass | ✅ 17/17 pages, 10/10 APIs |
 
-## Roadmap
+### Remaining for v1.0 Launch
+
+- [ ] Error states (PRD §6 — 10 specific scenarios)
+- [ ] Mobile responsive polish
+- [ ] Vercel + Supabase deployment
+
+### Roadmap (Post-Launch)
 
 - [ ] Authentication (Clerk)
-- [ ] Admin panel for KB moderation
-- [ ] Upgrade to Node 20 → Next.js 15 + Tailwind v4
 - [ ] Non-SDK Cape Flats genres
 - [ ] Artist dashboard
 - [ ] Mobile app (React Native)
+- [ ] B2B API + monetisation
 
 ---
 
 ## Docs
 
-Full documentation lives in `/docs`:
-
-- [`build-log.md`](docs/build-log.md) — complete build story, every bug, every decision
-- [`architecture.md`](docs/architecture.md) — system design, AI layer, database schema
-- [`setup.md`](docs/setup.md) — local dev setup + full API reference
+| Document | What's Inside |
+|---|---|
+| [`build-log.md`](docs/build-log.md) | Complete build story — every bug, every fix, every decision across 5 sessions |
+| [`architecture.md`](docs/architecture.md) | System design, request flows, AI layer, database schema |
+| [`setup.md`](docs/setup.md) | Full local dev setup + API reference |
 
 ---
 
 <div align="center">
 
 Built with 💚 for the Cape Flats
+
+*"Die Kaap se taal verdien om gehoor te word"*
+— The Cape's language deserves to be heard
 
 </div>
