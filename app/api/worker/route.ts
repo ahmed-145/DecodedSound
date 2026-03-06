@@ -41,9 +41,9 @@ export async function GET(req: NextRequest) {
                     data: {
                         songId: job.songId!,
                         plainTranslation: result.plainTranslation,
-                        lineByLine: result.lineByLine,
+                        lineByLine: JSON.parse(JSON.stringify(result.lineByLine)),
                         culturalContext: result.culturalContext,
-                        unknownTerms: result.unknownTerms,
+                        unknownTerms: JSON.parse(JSON.stringify(result.unknownTerms ?? [])),
                         genreConfidence: result.genreConfidence,
                         overallConfidence: result.overallConfidence,
                     },

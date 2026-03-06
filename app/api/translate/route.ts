@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { translateLyrics, detectGenre } from '@/lib/ai'
 import { generateSlug } from '@/lib/utils'
+import { translateLimiter } from '@/lib/rateLimit'
 
 export async function POST(req: NextRequest) {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1'
+    if (!translateLimiter.check(ip)) {
+        return NextResponse.json({ error: 'Too many requests — please wait a moment.' }, { status: 429 })
+    }
+
     try {
         const body = await req.json()
         const { lyrics, title, artist, overrideGenreWarning } = body as {

@@ -1,13 +1,11 @@
-// AI abstraction layer — swap engines with zero effort
-// Primary: Gemini (translation, cultural context)
-// Secondary: Groq (transcription via Whisper, fast tasks)
+// AI abstraction layer — all AI calls go through Groq
+// Translation: LLaMA 3.3 70B · Transcription: Whisper Large v3
+// Swap providers by changing baseURL + apiKey only
 
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import Groq, { toFile } from 'groq-sdk'
 import type { Uploadable } from 'groq-sdk/uploads'
 
-// ── Clients ──────────────────────────────────────────────────────────────────
-const geminiClient = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
+// ── Client ───────────────────────────────────────────────────────────────────
 const groqClient = new Groq({ apiKey: process.env.GROQ_API_KEY! })
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -70,8 +68,8 @@ Rules:
 - If genreConfidence is low (English-looking lyrics), still complete all fields.`
 
 // ── Translation via Groq LLaMA 3.3 70B ───────────────────────────────────────
-// Using Groq instead of Gemini: 14,400 req/day free at 6,000 RPM vs Gemini's
-// ~1,500 req/day at 15 RPM. LLaMA 3.3 70B is excellent at JSON instruction-following.
+// 14,400 req/day free at 6,000 RPM. LLaMA 3.3 70B is excellent at JSON
+// instruction-following with response_format: json_object.
 export async function translateLyrics(
     lyrics: string,
     kbContext?: string
@@ -194,5 +192,71 @@ confidence is 0.0 to 1.0 — how confident this IS SDK music (not how confident 
     } catch {
         // Default: assume SDK if we can't parse (fail open)
         return { isSDK: true, confidence: 0.5 }
+    }
+}
+
+
+// ── Reverse Translation (English → SDK) ──────────────────────────────────────
+// PRD Section 16: user types plain English, gets SDK-style output back.
+const REVERSE_SYSTEM_PROMPT = `You are DecodedSound in reverse mode. Your job is to rewrite plain English text in the style of EsDeeKid (SDK) — Cape Flats hip-hop from South Africa.
+
+EsDeeKid's style includes:
+- Cape Flats Afrikaans dialect (Kaaps)
+- Slang terms: bra, g, kwaai, lekker, mandem, skolly, naai, poes, etc.
+- Short, punchy sentences with street cadence
+- Phonetic wordplay and double meanings
+- Afrikaans and Xhosa words mixed into English
+
+You will receive plain English text and a list of verified KB terms.
+
+Respond with a JSON object:
+{
+  "sdkOutput": string,         // the full rewrite in SDK style
+  "termsUsed": string[],        // which KB terms you used
+  "styleNotes": string          // 1-2 sentence note on the style choices made
+}
+
+Rules:
+- Only use KB terms where they fit naturally. Do not force them.
+- Keep the core meaning of the input intact.
+- Match EsDeeKid's cadence and phonetic style.
+- Output strict JSON only. No markdown, no preamble.`
+
+export interface ReverseResult {
+    sdkOutput: string
+    termsUsed: string[]
+    styleNotes: string
+}
+
+export async function reverseTranslate(
+    text: string,
+    kbContext?: string
+): Promise<ReverseResult> {
+    const userMessage = kbContext
+        ? `KB TERMS (use where natural):\n${kbContext}\n\nENGLISH TEXT:\n${text}`
+        : `ENGLISH TEXT:\n${text}`
+
+    const completion = await groqClient.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+            { role: 'system', content: REVERSE_SYSTEM_PROMPT },
+            { role: 'user', content: userMessage },
+        ],
+        temperature: 0.7, // higher creativity for style
+        max_tokens: 2048,
+        response_format: { type: 'json_object' },
+    })
+
+    const raw = completion.choices[0]?.message?.content ?? ''
+
+    try {
+        return JSON.parse(raw) as ReverseResult
+    } catch {
+        const start = raw.indexOf('{')
+        const end = raw.lastIndexOf('}')
+        if (start !== -1 && end > start) {
+            return JSON.parse(raw.slice(start, end + 1)) as ReverseResult
+        }
+        throw new Error('Reverse translation failed: could not parse AI response')
     }
 }

@@ -486,3 +486,85 @@ POST /api/kb/{id}/flag ×3
 - KB tooltip UI (Gap 5 — deferred)
 - QA pass on all 4 pages before making public
 
+---
+
+## Session 4 — 27 Feb – 6 Mar 2026 (Phase 2 + Admin + Hardening)
+
+### Session Goal
+Build Phase 2 (reverse translation), admin panel, rate limiting, and refactor UI into components.
+
+---
+
+### Feature: English → SDK Reverse Translation (PRD Phase 2)
+
+Full implementation of PRD Section 16:
+
+| File | What |
+|------|------|
+| `lib/ai.ts` | Added `reverseTranslate()` — LLaMA 3.3 70B with higher creativity (temp 0.7) |
+| `app/api/reverse/route.ts` | `POST /api/reverse` — validates input, fetches KB context, rate-limited |
+| `components/ReverseMode.tsx` | Full UI: textarea, "Flip to SDK" button, result with SDK output + KB terms pills + style notes |
+| `app/page.tsx` | Translate/Reverse mode toggle at top of home page |
+
+Output JSON: `{sdkOutput, termsUsed[], styleNotes}`
+
+---
+
+### Feature: Admin Panel
+
+| File | What |
+|------|------|
+| `app/api/admin/route.ts` | `GET` → dashboard stats (songs, translations, KB count, pending candidates, flags) + recent data. `POST` → moderation actions (approve/reject candidate, delete flag) |
+| `app/admin/page.tsx` | Full admin UI with stats cards, candidate review, flag management |
+
+Auth: `x-admin-secret` header checked against `ADMIN_SECRET` env var. Open in dev if not set.
+
+---
+
+### Feature: Rate Limiting
+
+`lib/rateLimit.ts` — sliding-window in-memory rate limiter per IP:
+
+| Limiter | Window | Max | Used by |
+|---------|--------|-----|---------|
+| `translateLimiter` | 60s | 10 | `/api/translate`, `/api/reverse` |
+| `audioLimiter` | 60s | 5 | `/api/audio`, `/api/youtube` |
+| `writeLimiter` | 60s | 30 | `/api/kb`, `/api/ratings` |
+
+Auto-cleanup of stale entries every 5 minutes.
+
+---
+
+### Refactor: Component Extraction
+
+Home page (`app/page.tsx`) refactored from monolith to components:
+- `components/InputTabs.tsx` — typed/audio/YouTube tab switcher with all input logic
+- `components/ReverseMode.tsx` — reverse translation UI
+- `components/StatsRow.tsx` — stats display
+- `app/song/[slug]/SongPageClient.tsx` — client-side song page logic
+
+---
+
+### Cleanup
+
+- Removed `GoogleGenerativeAI` import from `lib/ai.ts` (Gemini fully dropped)
+- Migrated ESLint from `eslint.config.mjs` to `.eslintrc.json`
+- Updated `package.json` dependencies
+- Expanded KB seed with additional terms
+
+---
+
+## Updated Phase Status
+
+| Phase | PRD Name | Status |
+|-------|----------|--------|
+| Phase 0 | Project setup, DB, API scaffolding | ✅ Complete |
+| Phase 1 | MVP — All core features | ✅ Complete + PRD compliant |
+| Phase 2 | English → SDK reverse translation | ✅ Complete |
+| Phase 3 | Mobile (React Native) | 🔲 Not started |
+| Phase 4 | Monetisation, auth, B2B API | 🔲 Not started |
+
+**Next up:**
+- Deploy to Vercel + Supabase
+- KB hover tooltips (song page)
+- QA pass on all pages

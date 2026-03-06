@@ -5,14 +5,29 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  title: 'DecodedSound — SDK Music Translator',
+  title: {
+    default: 'DecodedSound — SDK Music Translator',
+    template: '%s | DecodedSound',
+  },
   description:
     'AI-powered translator for SDK (Esdeekid) music from the Cape Flats, South Africa. Understand the lyrics, slang, and cultural context of one of the most unique street music genres in the world.',
-  keywords: 'SDK, esdeekid, Cape Flats, South Africa, music translator, slang, cultural context',
+  keywords: ['SDK', 'esdeekid', 'Cape Flats', 'South Africa', 'music translator', 'slang dictionary', 'cultural context', 'Kaaps', 'Cape Town hip-hop'],
+  authors: [{ name: 'DecodedSound' }],
   openGraph: {
-    title: 'DecodedSound',
-    description: 'Making the culture accessible to the world.',
+    title: 'DecodedSound — SDK Music Translator',
+    description: 'AI-powered cultural translator for SDK / Esdeekid music from the Cape Flats. Making the culture accessible to the world.',
+    siteName: 'DecodedSound',
     type: 'website',
+    locale: 'en_ZA',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'DecodedSound — SDK Music Translator',
+    description: 'AI-powered cultural translator for SDK / Esdeekid music from the Cape Flats.',
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 }
 

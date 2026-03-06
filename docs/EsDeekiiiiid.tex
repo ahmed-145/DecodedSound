@@ -1,0 +1,1525 @@
+% ============================================================
+%  DecodedSound — Full PRD + Engineering Spec v3.3
+%  Single source of truth | Overleaf | pdflatex x2
+% ============================================================
+\documentclass[12pt, a4paper]{article}
+
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=2.8cm, right=2.8cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{colortbl}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{parskip}
+\usepackage{tcolorbox}
+\usepackage{listings}
+\tcbuselibrary{skins, breakable}
+
+% ── Colours ─────────────────────────────────────────────────
+\definecolor{brandpurple}{HTML}{6B35D9}
+\definecolor{brandlight}{HTML}{EDE5FF}
+\definecolor{accent}{HTML}{FF6B35}
+\definecolor{darkbg}{HTML}{1A1A2E}
+\definecolor{lightbg}{HTML}{F8F7FF}
+\definecolor{midgray}{HTML}{6B7280}
+\definecolor{rowalt}{HTML}{F3F0FF}
+\definecolor{successgreen}{HTML}{10B981}
+\definecolor{codebg}{HTML}{F1F0FF}
+\definecolor{warnyellow}{HTML}{F59E0B}
+\definecolor{codered}{HTML}{EF4444}
+
+% ── Hyperref ────────────────────────────────────────────────
+\hypersetup{
+  colorlinks=true,
+  linkcolor=brandpurple,
+  urlcolor=brandpurple,
+  pdftitle={DecodedSound — Full PRD + Engineering Spec v3.2},
+}
+
+% ── Section Formatting ──────────────────────────────────────
+\titleformat{\section}
+  {\Large\bfseries\color{darkbg}}
+  {\color{brandpurple}\thesection.}{0.6em}{}
+  [\vspace{-0.4em}\textcolor{brandpurple}{\rule{\linewidth}{2pt}}]
+
+\titleformat{\subsection}
+  {\normalsize\bfseries\color{brandpurple}}
+  {\thesubsection}{0.6em}{}
+
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{darkbg}}
+  {}{0em}{}
+
+\titlespacing*{\section}{0pt}{2em}{0.8em}
+\titlespacing*{\subsection}{0pt}{1.2em}{0.4em}
+\titlespacing*{\subsubsection}{0pt}{0.8em}{0.3em}
+
+% ── Header / Footer ─────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{midgray}\textbf{DecodedSound} — PRD + Engineering Spec v3.3}
+\fancyhead[R]{\small\color{midgray}March 2026}
+\fancyfoot[C]{\small\color{midgray}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{%
+  \color{brandpurple}\leaders\hrule height\headrulewidth\hfill}}
+
+% ── Box Styles ──────────────────────────────────────────────
+\tcbset{
+  prdbox/.style={
+    enhanced, breakable,
+    colback=lightbg, colframe=brandpurple,
+    leftrule=4pt, toprule=0.5pt, bottomrule=0.5pt, rightrule=0.5pt,
+    left=10pt, right=8pt, top=8pt, bottom=8pt,
+    fonttitle=\bfseries\color{brandpurple},
+  },
+  calloutbox/.style={
+    enhanced, breakable,
+    colback=brandlight, colframe=brandpurple,
+    arc=4pt, boxrule=1pt,
+    left=12pt, right=12pt, top=10pt, bottom=10pt,
+    fonttitle=\bfseries\color{brandpurple},
+  },
+  accentbox/.style={
+    enhanced,
+    colback=accent!10, colframe=accent,
+    leftrule=4pt, toprule=0.5pt, bottomrule=0.5pt, rightrule=0.5pt,
+    left=10pt, right=8pt, top=8pt, bottom=8pt,
+  },
+  darkbox/.style={
+    enhanced,
+    colback=darkbg, colframe=darkbg,
+    arc=4pt, boxrule=0pt,
+    left=14pt, right=14pt, top=12pt, bottom=12pt,
+  },
+  storybox/.style={
+    enhanced, breakable,
+    colback=successgreen!7, colframe=successgreen,
+    leftrule=4pt, toprule=0.5pt, bottomrule=0.5pt, rightrule=0.5pt,
+    left=10pt, right=8pt, top=6pt, bottom=6pt,
+    fonttitle=\bfseries\color{successgreen!70!black},
+  },
+  codebox/.style={
+    enhanced, breakable,
+    colback=codebg, colframe=brandpurple!30,
+    arc=3pt, boxrule=0.5pt,
+    left=10pt, right=8pt, top=6pt, bottom=6pt,
+    fontupper=\small\ttfamily\color{darkbg},
+  },
+  warnbox/.style={
+    enhanced,
+    colback=warnyellow!10, colframe=warnyellow,
+    leftrule=4pt, toprule=0.5pt, bottomrule=0.5pt, rightrule=0.5pt,
+    left=10pt, right=8pt, top=6pt, bottom=6pt,
+  },
+  enginebox/.style={
+    enhanced, breakable,
+    colback=darkbg!5, colframe=darkbg,
+    leftrule=4pt, toprule=0.5pt, bottomrule=0.5pt, rightrule=0.5pt,
+    left=10pt, right=8pt, top=8pt, bottom=8pt,
+    fonttitle=\bfseries\color{darkbg},
+  },
+}
+
+% ── Code Listings ───────────────────────────────────────────
+\lstset{
+  basicstyle=\small\ttfamily\color{darkbg},
+  backgroundcolor=\color{codebg},
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  frame=none,
+  aboveskip=0pt, belowskip=0pt,
+}
+
+% ── Table Columns ───────────────────────────────────────────
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+% ── Lists ───────────────────────────────────────────────────
+\setlist[itemize]{
+  label=\textcolor{brandpurple}{\textbullet},
+  leftmargin=1.4em, itemsep=0.3em, topsep=0.4em,
+}
+\setlist[enumerate]{
+  label=\textcolor{brandpurple}{\arabic*.},
+  leftmargin=1.4em, itemsep=0.3em, topsep=0.4em,
+}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+% ── Title Page ──────────────────────────────────────────────
+\begin{titlepage}
+  \pagecolor{darkbg}\color{white}
+  \vspace*{2cm}
+  \begin{center}
+    {\fontsize{46}{54}\selectfont\bfseries DecodedSound}\\[0.5em]
+    {\Large\color{brandlight} SDK / Esdeekid Music Translator}\\[1em]
+    \textcolor{brandpurple}{\rule{10cm}{1.5pt}}\\[1em]
+    {\large Full PRD + Engineering Spec}\\[0.3em]
+    {\normalsize\color{midgray}
+      Version 3.3 — Single Source of Truth\quad|\quad March 2026}\\[2cm]
+    \begin{tcolorbox}[calloutbox,
+        colback=darkbg!60, colframe=brandpurple, width=12cm]
+      \centering\color{white}\itshape
+      ``Making the culture accessible to the world.''
+    \end{tcolorbox}
+    \vfill
+    {\small\color{midgray}
+      \textbf{Genre:} SDK / Esdeekid only (v1.0)\\[0.3em]
+      \textbf{Stack:} Next.js 14 · TypeScript · Prisma · Postgres · Vercel\\[0.3em]
+      \textbf{AI:} Groq LLaMA 3.3 70B (translation + detection) · Groq Whisper (transcription)\\[0.3em]
+      \textbf{Access:} Fully open — no account required at launch\\[0.3em]
+      \textbf{Team:} 2 (Founder + AI)\\[0.3em]
+      \textbf{Status:} \textcolor{successgreen}{\textbullet}\enspace
+        Phase 1 MVP Complete — Pre-Deploy
+    }
+  \end{center}
+\end{titlepage}
+
+\pagecolor{white}\color{darkbg}
+\newpage
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{What We're Building \& Why}
+% ============================================================
+
+\begin{tcolorbox}[calloutbox, title={The One-Line Pitch}]
+  DecodedSound is an AI-powered web platform that translates SDK (esdeekid)
+  music into plain, accessible English — giving anyone in the world the tools
+  to understand and connect with one of the most culturally rich street music
+  genres to come out of South Africa.
+\end{tcolorbox}
+
+\vspace{0.6em}
+
+SDK music is not just slang. It is a coded cultural language built on phonetic
+wordplay, Cape Flats dialect, Afrikaans and Xhosa borrowings, double meanings,
+and hyper-local references that no outsider can decode without help. No tool
+exists that does this well. We're building it.
+
+DecodedSound takes audio files, streaming links, or typed lyrics and returns
+four things: a plain English translation, a line-by-line annotated breakdown,
+a slang dictionary, and a cultural context narrative.
+
+\textbf{Genre scope is SDK / esdeekid only for v1.0.} We do one thing
+exceptionally well before expanding. Amapiano, Gqom, Kwaito are roadmapped
+for v2.0 only.
+
+\subsection*{Document Metadata}
+\renewcommand{\arraystretch}{1.4}
+\begin{center}
+\begin{tabular}{L{5cm} L{8.5cm}}
+  \rowcolor{brandpurple!80}
+  \textcolor{white}{\textbf{Field}} &
+  \textcolor{white}{\textbf{Value}} \\
+  \rowcolor{rowalt} Product Name      & DecodedSound \\
+  Document Version                    & 3.3 — Full PRD + Engineering Spec \\
+  \rowcolor{rowalt} Date              & March 2026 \\
+  Status                              & \textcolor{successgreen}{\textbf{Phase 1 MVP Complete}} \\
+  \rowcolor{rowalt} Genre Scope v1.0  & SDK / Esdeekid only \\
+  Genre Scope v2.0                    & + Amapiano, Gqom, Kwaito \\
+  \rowcolor{rowalt} Access Model      & Fully open, no account at launch \\
+  Platform v1.0                       & Web browser \\
+  \rowcolor{rowalt} Platform v2.0     & + Mobile (React Native) \\
+  UI Language                         & English (v1.0) \\
+  \rowcolor{rowalt} Team              & 2 (Founder + AI) \\
+  Monetization                        & TBD — decided before v1.5 \\
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Design Principles}
+% ============================================================
+
+These are not suggestions. Every decision in the product and in the code must
+hold up against these:
+
+\begin{tcolorbox}[prdbox]
+\begin{itemize}
+  \item \textbf{Cultural respect first} — we translate, we never police or
+        sanitise. The goal is understanding, not judgment.
+  \item \textbf{Accuracy over speed} — unknown terms are flagged, never
+        guessed. Confidence is surfaced to the user.
+  \item \textbf{Zero friction at entry} — no account, no signup wall, no
+        paywall at launch. Land and translate immediately.
+  \item \textbf{SDK focus, no exceptions in v1.0} — one genre done properly
+        beats five genres done badly.
+  \item \textbf{Build lean} — no service, library, or abstraction gets added
+        unless it solves a real problem we have right now.
+  \item \textbf{One source of truth} — this document. If it's not in here,
+        it doesn't exist yet.
+\end{itemize}
+\end{tcolorbox}
+
+% ============================================================
+\section{Target Users}
+% ============================================================
+
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+\begin{tabular}{L{3cm} L{4cm} L{6.5cm}}
+  \rowcolor{brandpurple!80}
+  \textcolor{white}{\textbf{Persona}} &
+  \textcolor{white}{\textbf{Who}} &
+  \textcolor{white}{\textbf{Core Need}} \\
+  \rowcolor{rowalt}
+  The Curious Fan & Loves the music, misses meaning &
+  Understand lyrics; connect with the art \\
+  The Parent & Teen's parent hearing SDK at home &
+  Know what their kid listens to, without judgment \\
+  \rowcolor{rowalt}
+  The International Listener & Non-SA audience via streaming &
+  Context and vocab to appreciate the music \\
+  The Journalist & Media covering SA culture &
+  Accurate, citable cultural translations \\
+  \rowcolor{rowalt}
+  The Artist & Emerging SDK artists &
+  See how their work lands with an outside audience \\
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Core Features}
+% ============================================================
+
+\subsection{Input Methods}
+
+\begin{itemize}
+  \item \textbf{Typed Lyrics} — paste raw lyrics, hit translate. No upload,
+        no processing delay. Fastest path.
+  \item \textbf{Audio Upload} — MP3, WAV, M4A up to 50\,MB. Whisper
+        transcribes to text, user can edit before translating.
+  \item \textbf{YouTube Link} \textemdash{} paste a URL. System always extracts audio
+        via yt-dlp and transcribes with Groq Whisper (YouTube auto-captions are
+        skipped because YouTube auto-translates Afrikaans to broken English).
+        User reviews and edits transcription before translating.
+\end{itemize}
+
+\subsection{4-Panel Translation Output}
+
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+\begin{tabular}{L{3.5cm} L{10cm}}
+  \rowcolor{brandpurple!80}
+  \textcolor{white}{\textbf{Panel}} &
+  \textcolor{white}{\textbf{What It Shows}} \\
+  \rowcolor{rowalt}
+  Plain Translation &
+  Full song rewritten in natural, standard English. No jargon. Reads like a translated poem. \\
+  Line-by-Line &
+  Original line alongside English translation. Slang terms highlighted; tap/hover for KB definition. \\
+  \rowcolor{rowalt}
+  Slang Dictionary &
+  Auto-extracted glossary: term, definition, origin note, example, confidence level. \\
+  Cultural Context &
+  2--4 paragraph AI-written narrative: who's speaking, to whom, about what, and why it matters culturally. \\
+\end{tabular}
+\end{center}
+
+\subsection{Slang Knowledge Base (KB)}
+
+The KB is the core differentiator. It is a growing dictionary of SDK-specific
+terms that powers all translation outputs and gets smarter over time.
+
+\begin{tcolorbox}[prdbox, title={KB Strategy: AI-First, Community-Validated}]
+\begin{itemize}
+  \item \textbf{Phase 1 \textemdash{} AI Seeding:} Every submitted song runs through
+        Groq LLaMA 3.3 70B which extracts unknown terms and generates provisional
+        definitions. These are stored as candidates.
+  \item \textbf{Phase 2 — Moderation:} We (the team) review candidates
+        in an internal admin queue and approve, edit, or reject them.
+        Approved entries enter the live KB.
+  \item \textbf{Phase 3 — Community:} Once we have users, community members
+        can flag wrong entries and submit new ones. All go through moderation.
+  \item \textbf{Ongoing:} Every new song adds new candidates. The KB never
+        stops growing.
+\end{itemize}
+\end{tcolorbox}
+
+\subsection{Public Song Library}
+
+Searchable library of already-translated songs. Browse by artist or recency.
+Each entry shows all 4 panels and a community rating. No account needed to
+browse or view.
+
+\subsection{Sharing}
+
+Every translated song gets a unique URL (\texttt{/song/[slug]}). Slugs follow
+the format \texttt{\{artist\}-\{title\}-\{nanoid(6)\}} for SEO-friendly sharing.
+Share button copies to clipboard. Shared pages are fully public.
+
+% ============================================================
+\section{User Stories}
+% ============================================================
+
+Format: \textit{As a [persona], I want to [action], so that [outcome].}
+Acceptance criteria define done.
+
+\subsection{Typed Lyrics Input}
+
+\begin{tcolorbox}[storybox, title={US-01 — Paste and Translate}]
+  \textbf{As a} fan, \textbf{I want to} paste lyrics and hit translate,
+  \textbf{so that} I get a full breakdown instantly.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item Accepts 1--500 lines of text.
+    \item Translate button disabled until at least 1 non-empty line present.
+    \item All 4 panels populated within 10 seconds for lyrics under 50 lines.
+    \item No account or login required at any point.
+  \end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[storybox, title={US-02 — Clear and Re-translate}]
+  \textbf{As a} user, \textbf{I want to} clear input and paste new lyrics,
+  \textbf{so that} I can translate multiple songs in one session.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item Clear button resets input and all 4 output panels.
+    \item No page reload required.
+  \end{itemize}
+\end{tcolorbox}
+
+\subsection{Audio Upload}
+
+\begin{tcolorbox}[storybox, title={US-03 — Upload Audio File}]
+  \textbf{As a} fan, \textbf{I want to} upload an audio file,
+  \textbf{so that} I don't have to type anything.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item Accepts MP3, WAV, M4A only. Other formats rejected with clear message.
+    \item Files over 50\,MB rejected before upload begins.
+    \item Progress bar shown during upload.
+    \item Transcribed lyrics displayed in an editable area before translation.
+    \item User can fix transcription errors then hit translate.
+    \item All 4 panels populated on success.
+  \end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[storybox, title={US-04 — Edit Transcription Before Translating}]
+  \textbf{As a} user, \textbf{I want to} fix auto-transcribed lyrics,
+  \textbf{so that} transcription errors don't break the translation.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item Transcribed text shown in editable textarea.
+    \item ``Looks good, translate'' button proceeds.
+    \item Edits reflected in the final output.
+  \end{itemize}
+\end{tcolorbox}
+
+\subsection{Streaming Link}
+
+\begin{tcolorbox}[storybox, title={US-05 — Translate via YouTube Link}]
+  \textbf{As a} user, \textbf{I want to} paste a YouTube URL and get a
+  translation, \textbf{so that} I don't need to download anything.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item Accepts \texttt{youtube.com/watch?v=} and \texttt{youtu.be/} formats.
+    \item Always extracts audio via yt-dlp and transcribes with Groq Whisper
+          (YouTube auto-captions are skipped because YouTube auto-translates
+          Afrikaans to broken English).
+    \item User reviews and edits transcription before translating.
+    \item If song already in library by URL match, cached result served.
+  \end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[storybox, title={US-06 — Reject Non-SDK Content}]
+  \textbf{As a} user submitting a non-SDK song, \textbf{I want to} be
+  clearly told the scope, \textbf{so that} I'm not confused by a bad result.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item High-confidence non-SDK ($>$0.85) shows a friendly genre warning,
+          not an error. User can override and proceed anyway.
+    \item Low-confidence detection proceeds with a disclaimer banner.
+  \end{itemize}
+\end{tcolorbox}
+
+\subsection{Translation Output}
+
+\begin{tcolorbox}[storybox, title={US-07 — View Plain Translation}]
+  \textbf{As a} parent, \textbf{I want to} read the song in plain English,
+  \textbf{so that} I understand it with zero prior knowledge.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item Full song in standard English prose, no jargon.
+    \item Reads naturally — not word-for-word literal.
+    \item Default panel shown after translation completes.
+  \end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[storybox, title={US-08 — View Line-by-Line Breakdown}]
+  \textbf{As a} fan, \textbf{I want to} see each line beside its translation,
+  \textbf{so that} I learn which words mean what.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item Original left / top, translation right / bottom. Side-by-side desktop,
+          stacked mobile.
+    \item Slang terms highlighted in brand purple.
+    \item Tap/hover shows inline tooltip with KB definition.
+    \item Unknown terms show: ``Not in our dictionary yet — help us define it!''
+  \end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[storybox, title={US-09 — View Slang Dictionary}]
+  \textbf{As a} user, \textbf{I want to} see a glossary of all slang,
+  \textbf{so that} I learn the vocab for future songs.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item All flagged terms listed alphabetically.
+    \item Each entry: term, definition, origin note, example, confidence badge.
+    \item Unverified terms visually distinguished.
+    \item Clicking a term highlights it in the line-by-line panel.
+  \end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[storybox, title={US-10 — View Cultural Context}]
+  \textbf{As a} journalist, \textbf{I want to} read a cultural narrative,
+  \textbf{so that} I understand the song's story and significance.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item 2--4 paragraph narrative covering who, what, to whom, and why.
+    \item Written in accessible, engaging prose.
+    \item Labelled: ``AI-generated — community review pending.''
+  \end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[storybox, title={US-11 — Switch Output Panels}]
+  \textbf{As a} user, \textbf{I want to} switch between the 4 panels,
+  \textbf{so that} I explore at my own pace.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item 4 tabs: Translation, Line by Line, Slang Dictionary, Cultural Context.
+    \item Switching is instant — no reload.
+    \item Desktop toggle: ``Show all panels'' displays 2×2 grid.
+  \end{itemize}
+\end{tcolorbox}
+
+\subsection{Knowledge Base \& Community}
+
+\begin{tcolorbox}[storybox, title={US-12 — Flag a Wrong Definition}]
+  \textbf{As a} native speaker, \textbf{I want to} flag a bad KB entry,
+  \textbf{so that} it gets corrected.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item Flag icon on every KB term. No account to flag.
+    \item Form: ``What's wrong?'' with text input.
+    \item 3+ unresolved flags auto-downgrade entry to Unverified.
+    \item Flags appear in admin moderation queue.
+  \end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[storybox, title={US-13 — Submit a Missing Definition}]
+  \textbf{As a} community member, \textbf{I want to} add a missing term,
+  \textbf{so that} the KB grows.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item Contribute form: Term, Definition, Origin note, Example sentence.
+    \item Stored as KBCandidate — not live until approved by us.
+    \item Confirmation: ``Submitted! We'll review it.''
+  \end{itemize}
+\end{tcolorbox}
+
+\subsection{Library \& Social}
+
+\begin{tcolorbox}[storybox, title={US-14 — Browse Song Library}]
+  \textbf{As a} user, \textbf{I want to} browse translated songs,
+  \textbf{so that} I can explore without submitting anything.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item Song cards: title, artist, date, avg rating.
+    \item Default sort: most recently translated. Filter by artist text search.
+    \item No account required to browse.
+  \end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[storybox, title={US-15 — Rate a Translation}]
+  \textbf{As a} user, \textbf{I want to} rate accuracy,
+  \textbf{so that} the best translations surface.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item 1--5 star widget. No account needed (session-based dedup).
+    \item Avg rating and count displayed.
+    \item Songs below 3 stars flagged in admin queue.
+  \end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[storybox, title={US-16 — Share a Translation}]
+  \textbf{As a} user, \textbf{I want to} share a translation link,
+  \textbf{so that} others can view it without submitting the song.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item Every song gets a unique URL: \texttt{/song/[slug]}.
+    \item Slug format: \texttt{\{artist\}-\{title\}-\{nanoid(6)\}}.
+    \item Shared pages publicly accessible, no account needed.
+  \end{itemize}
+\end{tcolorbox}
+
+% ============================================================
+\section{Error States}
+% ============================================================
+
+No raw error codes ever shown to users. Every error is human and helpful.
+
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+\begin{tabular}{L{3.8cm} L{5cm} L{4.8cm}}
+  \rowcolor{brandpurple!80}
+  \textcolor{white}{\textbf{Scenario}} &
+  \textcolor{white}{\textbf{User Message}} &
+  \textcolor{white}{\textbf{System Behaviour}} \\
+  \rowcolor{rowalt}
+  File too large ($>$50\,MB) &
+  ``File is too big (max 50\,MB). Trim the audio or paste lyrics instead.'' &
+  Reject before upload. \\
+  Bad file format &
+  ``We only support MP3, WAV, and M4A.'' &
+  Reject at file picker. \\
+  \rowcolor{rowalt}
+  Whisper fails &
+  ``Couldn't transcribe this. Try a cleaner recording or paste lyrics manually.'' &
+  Log error; offer lyrics fallback. \\
+  Geo-blocked link &
+  ``Can't access that link in your region. Paste the lyrics instead.'' &
+  Offer lyrics fallback. \\
+  \rowcolor{rowalt}
+  Invalid / dead URL &
+  ``That link doesn't work. Check the URL and try again.'' &
+  Validate before processing. \\
+  Translation timeout &
+  ``Taking longer than expected. Try again in a moment.'' &
+  Auto-retry once; message on 2nd fail. \\
+  \rowcolor{rowalt}
+  Non-SDK detected &
+  ``Doesn't look like SDK music — we specialise in SDK for now. Try anyway?'' &
+  Warning + override button. \\
+  Empty lyrics &
+  ``Paste some lyrics first!'' &
+  Disable button; inline hint. \\
+  \rowcolor{rowalt}
+  Zero KB matches &
+  ``New territory for us — translation provided but dictionary is empty. Help us build it!'' &
+  Proceed; show contribute CTA. \\
+  Offline &
+  ``You're offline. Check your connection.'' &
+  Detect offline; pause processing. \\
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Data Models}
+% ============================================================
+
+\begin{tcolorbox}[warnbox]
+  These are the Prisma schema definitions we build from directly.
+  Field names here are the field names in the code.
+\end{tcolorbox}
+
+\subsection{Song}
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+model Song {
+  id           String        @id @default(cuid())
+  title        String        @default("Untitled")
+  artist       String        @default("")
+  rawLyrics    String        @db.Text
+  slug         String        @unique
+  inputType    InputType     @default(TYPED)
+  sourceUrl    String?
+  isPublic     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  translations Translation[]
+  jobs         Job[]
+  ratings      Rating[]
+}
+
+enum InputType { TYPED  AUDIO  YOUTUBE }
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{Translation}
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+model Translation {
+  id                String   @id @default(cuid())
+  songId            String
+  song              Song     @relation(fields: [songId], references: [id],
+                               onDelete: Cascade)
+  plainTranslation  String   @db.Text
+  lineByLine        Json
+  // [{ original: string, translation: string, flaggedTerms: string[] }]
+  culturalContext   String   @db.Text
+  unknownTerms      Json     @default("[]")
+  // [{ term: string, provisionalDefinition: string, confidence: number }]
+  genreConfidence   Float    @default(0)
+  overallConfidence Float    @default(0)
+  aiModelVersion    String   @default("llama-3.3-70b-versatile")
+  processingTimeMs  Int      @default(0)
+  createdAt         DateTime @default(now())
+}
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{Job (Async Processing Queue)}
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+model Job {
+  id        String    @id @default(cuid())
+  type      String    @default("TRANSLATE")
+  status    JobStatus @default(PENDING)
+  payload   Json?
+  songId    String?
+  song      Song?     @relation(fields: [songId], references: [id])
+  errorMsg  String?
+  attempts  Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+enum JobStatus { PENDING  PROCESSING  COMPLETE  FAILED }
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{KBEntry}
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+model KBEntry {
+  id         String        @id @default(cuid())
+  term       String        @unique
+  definition String        @db.Text
+  origin     String?
+  example    String?       @db.Text
+  confidence Float         @default(0.5)
+  isApproved Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  flags      Flag[]
+  candidates KBCandidate[]
+}
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{KBCandidate}
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+model KBCandidate {
+  id            String   @id @default(cuid())
+  term          String
+  definition    String   @db.Text
+  confidence    Float    @default(0.5)
+  kbEntryId     String?
+  kbEntry       KBEntry? @relation(fields: [kbEntryId], references: [id])
+  translationId String?
+  createdAt     DateTime @default(now())
+}
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{Contribution}
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+model Contribution {
+  id         String   @id @default(cuid())
+  term       String
+  definition String   @db.Text
+  example    String?
+  ip         String
+  status     String   @default("PENDING")
+  createdAt  DateTime @default(now())
+}
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{Rating}
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+model Rating {
+  id        String   @id @default(cuid())
+  songId    String
+  song      Song     @relation(fields: [songId], references: [id])
+  stars     Int      // 1-5
+  ip        String
+  createdAt DateTime @default(now())
+
+  @@unique([songId, ip]) // one rating per IP per song (upsert on re-rate)
+}
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{Flag}
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+model Flag {
+  id        String   @id @default(cuid())
+  kbEntryId String
+  kbEntry   KBEntry  @relation(fields: [kbEntryId], references: [id])
+  reason    String   @db.Text
+  ip        String
+  createdAt DateTime @default(now())
+}
+// 3+ flags auto-downgrade entry: isApproved = false
+\end{lstlisting}
+\end{tcolorbox}
+
+% ============================================================
+\section{API Routes}
+% ============================================================
+
+All routes live under \texttt{/app/api/} in the Next.js App Router.
+All responses are JSON. Errors follow:
+\texttt{\{"error": string\}}.
+
+\subsection{Translation \& Input}
+
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+POST   /api/translate
+       Body:    { title?, artist?, lyrics: string }
+       Returns: { slug: string }
+       // Synchronous. Runs genre detection + KB inject + Groq LLaMA
+       // translation. Creates Song + Translation. Redirects to /song/[slug].
+       // Rejects if lyrics < 20 chars.
+
+POST   /api/audio
+       Body:    multipart/form-data { file: File }
+       Returns: { text: string }
+       // Groq Whisper transcription (language hint: 'af').
+       // Accepts MP3, WAV, M4A, WEBM. Returns transcribed text.
+       // User reviews/edits then calls /api/translate.
+
+POST   /api/youtube
+       Body:    { url: string }
+       Returns: { text: string, title?: string }
+       // yt-dlp downloads .webm -> Groq Whisper transcription.
+       // Always skips YouTube captions (auto-translate breaks SDK).
+       // Validates youtube.com and youtu.be URLs only.
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{Songs}
+
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+GET    /api/songs
+       Query:   ?q=string&page=1 (20 per page)
+       Returns: { songs: Song[], total, page, totalPages }
+       // Public library. Case-insensitive search on title + artist.
+
+GET    /api/songs/[slug]
+       Returns: Song with latest translation + avg rating
+       // 404 if slug not found.
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{Knowledge Base}
+
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+GET    /api/kb
+       Query:   ?q=string (optional search)
+       Returns: { entries: KBEntry[] }
+       // Returns all approved entries, filtered by term search.
+
+POST   /api/kb
+       Body:    { term, definition, example? }
+       Returns: { id, message: "Contribution submitted for review." }
+       // Creates Contribution record. Not live until approved.
+
+POST   /api/kb/[id]/flag
+       Body:    { reason: string }
+       Returns: { message: "Flag submitted." }
+       // 3+ flags auto-downgrade entry (isApproved = false).
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{Ratings}
+
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+POST   /api/ratings
+       Body:    { songId: string, stars: number (1-5) }
+       Returns: { id, message: "Rating saved." }
+       // One per IP per song (upsert). Validates stars 1-5 and songId exists.
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{Worker (Cron)}
+
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+GET    /api/worker
+       Returns: { processed: number }
+       // Vercel cron hits this every 60s. Processes up to 5 PENDING jobs.
+       // Max 3 retries per job before FAILED.
+\end{lstlisting}
+\end{tcolorbox}
+
+% ============================================================
+\section{Folder Structure}
+% ============================================================
+
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+app/
+├── app/
+│   ├── page.tsx                   # Landing + 3-tab input (home)
+│   ├── layout.tsx                 # Root layout (Inter font, nav, footer, SEO)
+│   ├── globals.css                # Tailwind + custom utilities
+│   ├── song/[slug]/page.tsx       # 4-panel translation view
+│   ├── library/page.tsx           # Public song library with search
+│   ├── kb/page.tsx                # Slang KB browser + contribute modal
+│   └── api/
+│       ├── translate/route.ts     # POST — main translation pipeline
+│       ├── audio/route.ts         # POST — Whisper transcription
+│       ├── youtube/route.ts       # POST — yt-dlp + Whisper
+│       ├── songs/
+│       │   ├── route.ts           # GET — library with search + pagination
+│       │   └── [slug]/route.ts    # GET — single song + translation
+│       ├── kb/
+│       │   ├── route.ts           # GET/POST — browse + contribute
+│       │   └── [id]/flag/route.ts # POST — flag entry
+│       ├── ratings/route.ts       # POST — star rating (1-5)
+│       └── worker/route.ts        # GET — Vercel cron job processor
+├── lib/
+│   ├── ai.ts                      # All AI calls (Groq LLaMA + Whisper)
+│   ├── ytdlp.ts                   # yt-dlp wrapper for YouTube audio
+│   ├── prisma.ts                  # Prisma client singleton
+│   └── utils.ts                   # slugs (nanoid), confidence formatting
+├── prisma/
+│   ├── schema.prisma              # 7 models, 4 enums
+│   └── seed.ts                    # 209 KB term seed script
+├── docs/
+│   ├── architecture.md
+│   ├── build-log.md
+│   └── setup.md
+├── docker-compose.yml             # Postgres 16 on port 5433
+├── vercel.json                    # Cron: /api/worker every 60s
+├── tailwind.config.js             # Custom ds-* colour tokens
+├── .env.local                     # API keys (never committed)
+└── package.json
+\end{lstlisting}
+\end{tcolorbox}
+
+\begin{tcolorbox}[warnbox]
+  \textbf{No components/ directory in v1.0.} All UI is inline in page files
+  for speed of iteration. Component extraction is planned for v1.1 when the
+  UI stabilises.
+\end{tcolorbox}
+
+% ============================================================
+\section{AI Pipeline — Step by Step}
+% ============================================================
+
+\begin{tcolorbox}[enginebox, title={Full Pipeline (Audio Upload Path)}]
+\begin{enumerate}
+  \item \textbf{Receive file} → validate type and size → upload to temp storage
+        → create Job record (\texttt{status: PENDING}).
+  \item \textbf{Worker picks up job} → sets \texttt{status: PROCESSING}.
+  \item \textbf{Transcription} → call Whisper transcription (via Groq
+        Whisper endpoint — free, same API shape as OpenAI) → receive
+        raw text → store on Job payload.
+  \item \textbf{Show to user for edit} → frontend polls job, sees
+        \texttt{status: AWAITING\_EDIT} → shows editable textarea.
+        User confirms or edits → sends corrected lyrics back.
+  \item \textbf{Preprocess} → split into lines → tag potential slang
+        candidates via regex + known-term pattern matching.
+  \item \textbf{KB Lookup} → query KBEntry table for all candidate terms →
+        build context string of known definitions to pass to Groq.
+  \item \textbf{Genre detection} → Groq (Llama 3.3 70B) classifies SDK vs non-SDK with
+        confidence score:
+        \begin{itemize}
+          \item $>$0.85 non-SDK: return genre warning, offer override.
+          \item $<$0.6 SDK confidence: proceed with disclaimer banner.
+          \item $\geq$0.6 SDK: proceed normally.
+        \end{itemize}
+  \item \textbf{Groq LLaMA translation call} → structured JSON prompt (see
+        Section~\ref{sec:prompt}) → Groq LLaMA 3.3 70B receives lyrics +
+        KB context → returns all 4 panels + unknown terms.
+  \item \textbf{Term extraction} → save unknown terms as KBCandidate records
+        with Groq's provisional definitions.
+  \item \textbf{Confidence scoring} → calculate per-term and overall score
+        based on KB hit rate and Groq self-reported certainty.
+  \item \textbf{Persist} → create Song + Translation records → return
+        \texttt{\{slug\}} to frontend.
+  \item \textbf{Frontend} → receives slug → redirects to
+        \texttt{/song/[slug]} → renders all 4 panels.
+\end{enumerate}
+\end{tcolorbox}
+
+\vspace{0.5em}
+
+\textbf{Typed lyrics path} skips steps 1--4. Starts at step 5 directly.
+
+\textbf{YouTube path} replaces step 3 with: always run yt-dlp to extract audio
+(YouTube auto-captions are skipped because YouTube auto-translates Afrikaans to
+broken English), then Groq Whisper transcription. If song already in library
+by URL match, skip pipeline and serve cached result.
+
+\subsection{Job Worker Design}
+
+The job queue is a Postgres table (the \texttt{Job} model). The worker is a
+Next.js API route that gets triggered on a schedule:
+
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+// lib/jobs/worker.ts
+// Called by: GET /api/worker (hit by a Vercel cron job every 30s)
+// 1. Query: SELECT * FROM Job WHERE status = PENDING ORDER BY createdAt LIMIT 5
+// 2. For each job: set status = PROCESSING, run pipeline, set COMPLETE or FAILED
+// 3. On failure: increment attempts. After 3 attempts: set status = FAILED.
+\end{lstlisting}
+\end{tcolorbox}
+
+\begin{tcolorbox}[warnbox]
+  \textbf{Vercel cron} (free tier) supports cron jobs with a minimum interval
+  of 60 seconds on the free plan. For v1.0 this is fine. If we need faster
+  processing, we switch to a persistent worker on Railway later.
+\end{tcolorbox}
+
+\subsection{Groq LLaMA Translation Prompt}
+\label{sec:prompt}
+
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+SYSTEM:
+You are DecodedSound — a cultural translation engine specialised in SDK
+(esdeekid) music from the Cape Flats, South Africa. You have deep knowledge
+of the dialect, phonetic wordplay, Afrikaans and Xhosa borrowings, and the
+cultural references of this genre.
+
+You will receive:
+- Raw song lyrics
+- A KB context block of known terms and definitions
+
+Produce a single JSON object with exactly these keys:
+{
+  "plainTranslation": string,       // full song in plain English, natural prose
+  "lineByLine": [                   // one object per lyric line
+    {
+      "original": string,
+      "translation": string,
+      "flaggedTerms": string[]      // terms from this line that are in KB or unknown
+    }
+  ],
+  "culturalContext": string,        // 2-4 paragraph narrative, accessible prose
+  "unknownTerms": [                 // terms NOT in KB
+    {
+      "term": string,
+      "provisionalDefinition": string,
+      "confidence": number          // 0.0 - 1.0
+    }
+  ],
+  "genreConfidence": number,        // 0.0 - 1.0 SDK genre match
+  "overallConfidence": number       // 0.0 - 1.0 translation confidence
+}
+
+Rules:
+- Never hallucinate definitions. If a term is unknown, include it in
+  unknownTerms with your best guess and a low confidence score.
+- Flag uncertainty. Never present a guess as a fact.
+- Output strict JSON only. No markdown, no preamble, no explanation.
+- Cultural context must be readable by someone with zero knowledge of SDK.
+- Plain translation must read naturally — not word-for-word literal.
+\end{lstlisting}
+\end{tcolorbox}
+
+% ============================================================
+\section{AI Provider Strategy}
+% ============================================================
+
+DecodedSound uses a \textbf{single-provider, zero-cost AI stack} for v1.0.
+All AI calls go through Groq via the OpenAI-compatible SDK --- swapping
+providers means changing two lines of code, nothing else.
+
+\begin{tcolorbox}[prdbox, title={Groq --- Single Provider for All AI Tasks}]
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+\begin{tabular}{L{3.5cm} L{3cm} L{3cm} L{3.5cm}}
+  \rowcolor{brandpurple!80}
+  \textcolor{white}{\textbf{Task}} &
+  \textcolor{white}{\textbf{Provider}} &
+  \textcolor{white}{\textbf{Model}} &
+  \textcolor{white}{\textbf{Free Limit}} \\
+  \rowcolor{rowalt}
+  Translation, line-by-line, cultural context &
+  Groq & llama-3.3-70b-versatile &
+  14,400 req/day \\
+  Genre detection &
+  Groq & llama-3.3-70b-versatile &
+  (shared limit) \\
+  \rowcolor{rowalt}
+  KB term extraction &
+  Groq & llama-3.3-70b-versatile &
+  (shared limit) \\
+  Audio transcription &
+  Groq Whisper & whisper-large-v3 &
+  7,200 audio-sec/hr \\
+\end{tabular}
+\end{center}
+\end{tcolorbox}
+
+\subsection{Why Groq Only}
+
+\begin{itemize}
+  \item \textbf{Speed} --- Groq's inference is the fastest available (500+ tok/s).
+        Translation feels near-instant to the user.
+  \item \textbf{Free tier is the most generous} --- 14,400 req/day covers all
+        translation + detection + KB extraction needs for early traction.
+  \item \textbf{Single API key} --- one provider means one key, one bill, one
+        rate-limit to monitor. Simpler to operate as a 2-person team.
+  \item \textbf{Whisper included} --- Groq offers a free Whisper endpoint,
+        so transcription costs nothing and uses the same SDK.
+  \item \textbf{Easy to swap later} --- all calls go through the OpenAI SDK.
+        If quality or limits become an issue, we can switch to Gemini, Claude,
+        or OpenRouter by changing \texttt{baseURL} and \texttt{apiKey} only.
+\end{itemize}
+
+\subsection{Provider Abstraction Layer}
+
+All AI calls go through a single file: \texttt{lib/ai.ts}.
+Swapping providers never touches business logic:
+
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+// lib/ai.ts
+import OpenAI from 'openai'
+
+const groq = new OpenAI({
+  baseURL: 'https://api.groq.com/openai/v1',
+  apiKey: process.env.GROQ_API_KEY,
+})
+
+// Translation -> groq.chat.completions.create({ model: 'llama-3.3-70b-versatile', ... })
+// Genre detect -> groq.chat.completions.create({ model: 'llama-3.3-70b-versatile', ... })
+// Transcribe  -> groq.audio.transcriptions.create({ model: 'whisper-large-v3', ... })
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{When We'd Pay}
+
+We stay fully free until one of these triggers:
+\begin{itemize}
+  \item Groq free limits (14,400 req/day) consistently maxed out ---
+        Groq paid tier is still very cheap.
+  \item Quality ceiling hit --- if LLaMA 3.3 70B's translation quality
+        is insufficient for complex SDK wordplay, we evaluate Gemini 2.5 Flash
+        or Claude 3.5 Sonnet as a premium upgrade.
+  \item At meaningful scale, we evaluate whether a dedicated provider
+        gives better quality ROI than the current setup.
+\end{itemize}
+
+% ============================================================
+\section{Tech Stack — Final Decisions}
+% ============================================================
+
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+\begin{tabular}{L{3.5cm} L{4cm} L{6cm}}
+  \rowcolor{brandpurple!80}
+  \textcolor{white}{\textbf{Layer}} &
+  \textcolor{white}{\textbf{Technology}} &
+  \textcolor{white}{\textbf{Why}} \\
+  \rowcolor{rowalt}
+  Framework & Next.js 14 (App Router) &
+  Fullstack in one repo — frontend + API routes. No separate backend. \\
+  Language & TypeScript &
+  Type safety across DB, API, and UI. Catches bugs before runtime. \\
+  \rowcolor{rowalt}
+  Database & Postgres (local dev) $\to$ Supabase (production) &
+  Local is free and fast. Supabase free tier when we go live — also handles file storage, killing S3. \\
+  ORM & Prisma &
+  Type-safe queries, migrations built in, plays perfectly with TypeScript and Supabase. \\
+  \rowcolor{rowalt}
+  Transcription & Groq Whisper (whisper-large-v3) &
+  Best multilingual transcription. Free tier. Same SDK as translation. \\
+  Translation AI & Groq LLaMA 3.3 70B &
+  Fast inference, generous free tier (14,400 req/day). Strong cultural reasoning. \\
+  \rowcolor{rowalt}
+  YouTube Extraction & yt-dlp (CLI, called from API route) &
+  Industry standard for YouTube audio. Free. \\
+  Styling & Tailwind CSS &
+  Fast, responsive, no CSS files to manage. \\
+  \rowcolor{rowalt}
+  Deployment & Vercel (free tier) &
+  Zero config. Deploys on every push. Free cron jobs for the job worker. \\
+  Job Queue & Postgres Job table + Vercel cron &
+  No extra service. We control it. Scales fine for v1.0. \\
+  \rowcolor{rowalt}
+  File Storage & Supabase Storage (when live) &
+  Replaces S3 entirely. Same free tier account as the DB. \\
+  Auth & Not in v1.0 &
+  Clerk is ready to add in v1.5 when accounts are needed. \\
+\end{tabular}
+\end{center}
+
+\begin{tcolorbox}[accentbox]
+  \textbf{What we removed from v1:} AWS Lambda, AWS SQS, AWS S3, AWS RDS,
+  FastAPI, separate Python backend. All replaced by Next.js API routes +
+  Postgres + Supabase Storage. Same capability, a fraction of the complexity.
+\end{tcolorbox}
+
+% ============================================================
+\section{Environment Variables}
+% ============================================================
+
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+# .env.local (never commit this file)
+
+# Database (local Docker: port 5433, see docker-compose.yml)
+DATABASE_URL="postgresql://decodedsound:decodedsound@localhost:5433/decodedsound"
+
+# AI — Groq handles ALL AI tasks (translation, detection, transcription)
+GROQ_API_KEY=""            # Groq — LLaMA 3.3 70B + Whisper
+
+# Supabase (add when going live, leave blank in local dev)
+NEXT_PUBLIC_SUPABASE_URL=""
+NEXT_PUBLIC_SUPABASE_ANON_KEY=""
+SUPABASE_SERVICE_ROLE_KEY=""
+
+# App
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+WORKER_SECRET=""           # secret to protect /api/worker cron endpoint
+\end{lstlisting}
+\end{tcolorbox}
+
+% ============================================================
+\section{Milestone Plan}
+% ============================================================
+
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+\begin{tabular}{C{1.3cm} L{3.5cm} L{8.7cm}}
+  \rowcolor{brandpurple!80}
+  \textcolor{white}{\textbf{Week}} &
+  \textcolor{white}{\textbf{Milestone}} &
+  \textcolor{white}{\textbf{Deliverables}} \\
+  1--2 & \textcolor{successgreen}{Foundation} &
+  Repo, Prisma schema + local DB, Next.js shell, Tailwind setup,
+  \texttt{.env.local}, Groq Whisper test call, Groq LLaMA test call.
+  \textcolor{successgreen}{\textbf{DONE}} \\
+  3--4 & \textcolor{successgreen}{Core Pipeline} &
+  Typed lyrics $\to$ Groq LLaMA $\to$ 4-panel output working end-to-end.
+  Job table + worker. KB seeded with 209 terms.
+  \textcolor{successgreen}{\textbf{DONE}} \\
+  5--6 & \textcolor{successgreen}{Audio \& YouTube} &
+  Audio upload with Whisper + edit step. YouTube link with
+  yt-dlp audio extraction (captions skipped). Caching for known songs.
+  \textcolor{successgreen}{\textbf{DONE}} \\
+  7--8 & KB \& Community &
+  KB lookup in pipeline. Confidence scoring. Flag form. Contribute
+  form. Admin moderation queue (basic internal page). \\
+  \rowcolor{rowalt}
+  9--10 & Library \& Sharing &
+  Public song library. Search by artist. Star ratings. Shareable
+  URLs. Genre detection + mismatch warning. \\
+  11--12 & Polish \& Errors &
+  All error states. Mobile-responsive UI. Full error logging.
+  Performance pass. Accessibility basics. \\
+  \rowcolor{rowalt}
+  13--14 & Beta \& Launch &
+  Internal beta. KB at 500+ terms. Bug fixes. Vercel deploy.
+  Public launch. \\
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{MVP Scope}
+% ============================================================
+
+\subsection*{In v1.0}
+\begin{itemize}
+  \item Typed lyrics, audio upload, YouTube link input
+  \item 4-panel output: plain translation, line-by-line, slang dictionary,
+        cultural context
+  \item Genre detection with SDK-only scope and friendly warnings
+  \item Slang KB: 500+ AI-seeded terms, flag + contribute forms
+  \item Admin moderation queue (internal, not public-facing)
+  \item Public song library with search and ratings
+  \item Shareable URLs per song
+  \item Fully open — no account required for anything
+  \item Web only, English UI
+\end{itemize}
+
+\subsection*{Explicitly NOT in v1.0}
+\begin{itemize}
+  \item User accounts or authentication
+  \item Mobile application
+  \item Any genre other than SDK / esdeekid
+  \item Non-English UI
+  \item SoundCloud or Spotify audio extraction
+  \item PDF / image export
+  \item Embeddable widget or public API
+  \item Monetization of any kind
+  \item Artist dashboard or analytics
+  \item English $\to$ SDK reverse translation (Phase 2)
+\end{itemize}
+
+\subsection*{Phase 2 — v1.5 (Weeks 14--24)}
+\begin{itemize}
+  \item \textbf{English $\to$ SDK Reverse Translation} — user types plain
+        English and gets SDK-style output back. Fun, viral, drives engagement.
+        Powered by the same KB in reverse. See Section~\ref{sec:reverse} for
+        full feature spec.
+  \item SoundCloud and Spotify integration
+  \item User accounts (optional — for saved history)
+  \item Community KB voting and contributor leaderboard
+  \item Artist song-claim and official commentary
+  \item PDF / image export of translated lyrics
+  \item Access limits if needed (daily cap for guests)
+  \item Analytics dashboard (internal)
+  \item Monetization decision and implementation begins
+\end{itemize}
+
+\subsection*{Phase 3 — v2.0 (Month 6+)}
+\begin{itemize}
+  \item Mobile application (React Native)
+  \item Genre expansion: Amapiano, Gqom, Kwaito (separate KB per genre)
+  \item Multilingual UI: Afrikaans, Zulu, French
+  \item Embeddable widget for external sites
+  \item Public API (B2B licensing)
+  \item Real-time lyric translation
+\end{itemize}
+
+% ============================================================
+\section{Feature Spec: English $\to$ SDK Reverse Translation}
+\label{sec:reverse}
+% ============================================================
+
+\begin{tcolorbox}[accentbox]
+  \textbf{Inspired by:} esdictionary.com (The Right Note, YouTube). Their
+  tool is a static lookup table — ours uses the live KB + AI to generate
+  contextually authentic SDK-style output, not just word swaps.
+\end{tcolorbox}
+
+\vspace{0.6em}
+
+The reverse translation mode lets users type plain English and receive
+SDK-style output — the same language, slang, and phonetic style that
+EsDeeKid uses. This is the feature that makes DecodedSound \textit{fun}
+and shareable, not just educational.
+
+\subsection{User Stories — Reverse Mode}
+
+\begin{tcolorbox}[storybox, title={US-17 — Translate English to SDK Style}]
+  \textbf{As a} fan, \textbf{I want to} type something in plain English and
+  get it back in SDK style, \textbf{so that} I can engage with the culture
+  and share it with friends.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item A toggle on the input switches between ``SDK $\to$ English'' and
+          ``English $\to$ SDK'' modes. Default is SDK $\to$ English.
+    \item In reverse mode, user types plain English text (up to 500 words).
+    \item Output is a single panel: the SDK-style rewrite.
+    \item Output uses real KB terms where appropriate — not invented slang.
+    \item AI is instructed to match EsDeeKid's phonetic style, cadence,
+          and vocabulary as closely as possible.
+    \item A disclaimer is shown: ``AI-generated SDK style — not verified
+          by native speakers.''
+  \end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[storybox, title={US-18 — Share a Reverse Translation}]
+  \textbf{As a} user, \textbf{I want to} share my SDK-style output,
+  \textbf{so that} I can post it or send it to friends.\\[0.4em]
+  \textbf{Done when:}
+  \begin{itemize}
+    \item Reverse translations get a shareable URL like forward translations.
+    \item A ``Copy text'' button copies just the SDK output for pasting
+          into messages or social media.
+    \item Output is clearly labelled as AI-generated SDK style.
+  \end{itemize}
+\end{tcolorbox}
+
+\subsection{How It Works — Reverse Pipeline}
+
+\begin{tcolorbox}[prdbox, title={Reverse Translation Pipeline}]
+\begin{enumerate}
+  \item User types plain English text and selects ``English $\to$ SDK'' mode.
+  \item System queries KB for high-confidence SDK terms relevant to the
+        input's semantic content.
+  \item Groq LLaMA receives: plain English input + KB context of real SDK terms
+        + system prompt instructing it to rewrite in authentic EsDeeKid style.
+  \item Output is a single SDK-style rewrite using real KB vocabulary
+        where possible, AI-inferred style where not.
+  \item Result stored with \texttt{sourceType: REVERSE\_TRANSLATION} in DB.
+  \item Shareable URL generated. Disclaimer banner shown.
+\end{enumerate}
+\end{tcolorbox}
+
+\subsection{Groq LLaMA Prompt — Reverse Mode}
+
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+SYSTEM:
+You are DecodedSound in reverse mode. Your job is to rewrite plain English
+text in the style of EsDeeKid (SDK) — a Cape Flats hip-hop artist from
+South Africa.
+
+EsDeeKid's style includes:
+- Cape Flats slang and dialect
+- Afrikaans words and phonetic borrowings
+- Short, punchy sentences with street cadence
+- Phonetic wordplay and double meanings
+- The following verified KB terms (use these where natural): {kb_terms}
+
+Rules:
+- Only use KB terms where they fit naturally. Do not force them.
+- Do not invent slang that isn't in the KB — use AI judgement for style,
+  not vocabulary.
+- Keep the core meaning of the input intact.
+- Output the SDK rewrite only. No explanation, no preamble.
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{DB Change for Reverse Mode}
+
+One addition to the \texttt{SourceType} enum:
+
+\begin{tcolorbox}[codebox]
+\begin{lstlisting}
+enum SourceType {
+  TYPED_LYRICS
+  AUDIO_UPLOAD
+  YOUTUBE_LINK
+  REVERSE_TRANSLATION   // new in v1.5
+}
+\end{lstlisting}
+\end{tcolorbox}
+
+\subsection{Competitive Advantage Over esdictionary.com}
+
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+\begin{tabular}{L{4.5cm} L{4cm} L{5cm}}
+  \rowcolor{brandpurple!80}
+  \textcolor{white}{\textbf{Feature}} &
+  \textcolor{white}{\textbf{esdictionary.com}} &
+  \textcolor{white}{\textbf{DecodedSound}} \\
+  \rowcolor{rowalt}
+  Translation method & Static word lookup & AI + live KB context \\
+  Handles sentences & No — word by word & Yes — full sentence rewrite \\
+  \rowcolor{rowalt}
+  KB grows over time & No — frozen & Yes — every submission adds terms \\
+  Phonetic style matching & No & Yes — Groq LLaMA mimics cadence \\
+  \rowcolor{rowalt}
+  Forward translation & Yes & Yes (core feature) \\
+  Cultural context & No & Yes \\
+  \rowcolor{rowalt}
+  Audio / YouTube input & No & Yes \\
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Success Metrics}
+% ============================================================
+
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+\begin{tabular}{L{4.5cm} L{3cm} L{6cm}}
+  \rowcolor{brandpurple!80}
+  \textcolor{white}{\textbf{Metric}} &
+  \textcolor{white}{\textbf{Target}} &
+  \textcolor{white}{\textbf{How Measured}} \\
+  \rowcolor{rowalt}
+  Translation accuracy (user-rated) & $\geq$85\% good &
+  Post-translation star rating \\
+  Monthly active users & 5,000 by month 3 &
+  Vercel analytics \\
+  \rowcolor{rowalt}
+  Unique songs translated & 1,000 in library &
+  DB count \\
+  Avg session duration & $>$4 minutes &
+  Analytics \\
+  \rowcolor{rowalt}
+  KB terms at launch & 500+ &
+  DB count \\
+  KB terms at 6 months & 2,000+ &
+  DB count \\
+  \rowcolor{rowalt}
+  Community contributions/month & 100+ by month 3 &
+  Submission logs \\
+  Shares/month & 500+ by month 2 &
+  URL click tracking \\
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Risks \& Mitigations}
+% ============================================================
+
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+\begin{tabular}{L{4cm} L{2.5cm} L{7cm}}
+  \rowcolor{brandpurple!80}
+  \textcolor{white}{\textbf{Risk}} &
+  \textcolor{white}{\textbf{Likelihood}} &
+  \textcolor{white}{\textbf{Mitigation}} \\
+  \rowcolor{rowalt}
+  Whisper inaccuracy on fast delivery & High &
+  User edit step before translation. Post-launch fine-tuning. \\
+  Slang evolves faster than KB & High &
+  AI extracts candidates from every submission. Community validates. \\
+  \rowcolor{rowalt}
+  Cultural misrepresentation & Medium &
+  Confidence scoring. Flagging. ``AI-generated'' label on all outputs. \\
+  Groq LLaMA hallucination & Medium &
+  Explicit prompt instruction: flag unknown, never guess as fact. \\
+  \rowcolor{rowalt}
+  Copyright on YouTube extraction & Medium &
+  Audio used only for transcription, never stored or served. Fair-use argument. \\
+  Low community volume early & Medium &
+  AI-first KB means launch doesn't depend on community. \\
+  \rowcolor{rowalt}
+  Abuse of open flag/contribute & Low--Med &
+  IP rate limiting. Honeypot fields. Moderation queue. \\
+  Scope creep to other genres & Low &
+  Hard line in this document. SDK only until v1.0 ships. \\
+\end{tabular}
+\end{center}
+
+% ============================================================
+\section{Open Questions}
+% ============================================================
+
+\begin{enumerate}
+  \item \textbf{Monetization} — Must be decided before v1.5 architecture.
+        Options: freemium (guest cap, paid unlimited), B2B API, ads.
+        Current architecture does not block any of these.
+  \item \textbf{Artist rights / DMCA} — Do artists have the right to remove
+        their song from the public library? We need a policy before launch.
+  \item \textbf{Content moderation policy} — Explicit content and illegal
+        references will appear in SDK music. What is the library policy?
+        Recommended: no filter in v1.0, community flagging handles it.
+  \item \textbf{Launch partnerships} — SoundCloud, Audiomack, or SA music
+        blogs as launch partners for initial KB seeding and user acquisition.
+\end{enumerate}
+
+% ============================================================
+%  CLOSE
+% ============================================================
+\vspace{2em}
+\begin{tcolorbox}[darkbox]
+  \centering
+  \textcolor{white}{\Large\bfseries DecodedSound}\\[0.5em]
+  \textcolor{brandlight}{Making the culture accessible to the world.}\\[0.8em]
+  \textcolor{midgray}{\small
+    Full PRD + Engineering Spec v3.3\quad|\quad March 2026\quad|\quad
+    SDK only (v1.0)\quad|\quad Confidential
+  }
+\end{tcolorbox}
+
+\end{document}

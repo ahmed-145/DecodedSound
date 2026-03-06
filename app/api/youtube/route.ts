@@ -3,9 +3,15 @@ import { prisma } from '@/lib/prisma'
 import { extractYouTubeAudio } from '@/lib/ytdlp'
 import { transcribeAudio } from '@/lib/ai'
 import { generateSlug } from '@/lib/utils'
+import { audioLimiter } from '@/lib/rateLimit'
 import fs from 'fs/promises'
 
 export async function POST(req: NextRequest) {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '127.0.0.1'
+    if (!audioLimiter.check(ip)) {
+        return NextResponse.json({ error: 'Too many requests — please wait a moment.' }, { status: 429 })
+    }
+
     try {
         const { url, title, artist } = await req.json()
 

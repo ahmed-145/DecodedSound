@@ -75,7 +75,7 @@ export default function KBPage() {
                                 </span>
                             </div>
                             <p className="text-white/70 text-sm mt-2 leading-relaxed">{e.definition}</p>
-                            {e.example && <p className="text-white/30 text-xs mt-2 italic">"{e.example}"</p>}
+                            {e.example && <p className="text-white/30 text-xs mt-2 italic">&ldquo;{e.example}&rdquo;</p>}
                             {e.origin && <p className="text-white/20 text-xs mt-1">Origin: {e.origin}</p>}
                         </div>
                     ))}
