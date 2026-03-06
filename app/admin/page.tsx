@@ -18,6 +18,10 @@ interface RecentSong {
     id: string; title: string; artist: string | null; slug: string
     inputType: string; createdAt: string
 }
+interface LowRatedSong {
+    id: string; title: string; artist: string | null; slug: string
+    avgRating: number; ratingCount: number
+}
 
 export default function AdminPage() {
     const [authed, setAuthed] = useState(false)
@@ -27,6 +31,7 @@ export default function AdminPage() {
     const [candidates, setCandidates] = useState<Candidate[]>([])
     const [flags, setFlags] = useState<Flag[]>([])
     const [recentSongs, setRecentSongs] = useState<RecentSong[]>([])
+    const [lowRatedSongs, setLowRatedSongs] = useState<LowRatedSong[]>([])
     const [message, setMessage] = useState('')
 
     const headers = useCallback(() => ({
@@ -44,6 +49,7 @@ export default function AdminPage() {
             setCandidates(data.candidates)
             setFlags(data.flags)
             setRecentSongs(data.recentSongs)
+            setLowRatedSongs(data.lowRatedSongs || [])
             setAuthed(true)
         } catch {
             setMessage('Invalid admin secret.')
@@ -59,6 +65,7 @@ export default function AdminPage() {
                     setCandidates(data.candidates)
                     setFlags(data.flags)
                     setRecentSongs(data.recentSongs)
+                    setLowRatedSongs(data.lowRatedSongs || [])
                     setAuthed(true)
                 })
             }
@@ -191,6 +198,30 @@ export default function AdminPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Low-Rated Songs — PRD US-15 */}
+            {lowRatedSongs.length > 0 && (
+                <div className="ds-card mt-6">
+                    <div className="p-4 border-b border-ds-border">
+                        <h2 className="text-lg font-semibold text-yellow-400">⚠️ Low-Rated Songs ({lowRatedSongs.length})</h2>
+                        <p className="text-xs text-white/30 mt-1">Songs with average rating below 3 stars — may need review</p>
+                    </div>
+                    <div className="divide-y divide-ds-border/50">
+                        {lowRatedSongs.map(s => (
+                            <a key={s.id} href={`/song/${s.slug}`} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                                <div>
+                                    <span className="text-white font-medium">{s.title}</span>
+                                    {s.artist && <span className="text-white/40 text-sm ml-2">{s.artist}</span>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-yellow-400 text-sm font-mono">★ {s.avgRating}</span>
+                                    <span className="text-xs text-white/20">({s.ratingCount} ratings)</span>
+                                </div>
+                            </a>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Recent Songs */}
             <div className="ds-card mt-6">

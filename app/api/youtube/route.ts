@@ -20,6 +20,23 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Please paste a valid YouTube URL (youtube.com or youtu.be)' }, { status: 400 })
         }
 
+        // ── YouTube URL Cache (PRD US-05) ─────────────────────────────
+        // If this URL has already been translated, serve the cached result
+        const existingSong = await prisma.song.findFirst({
+            where: { sourceUrl: url, inputType: 'YOUTUBE' },
+            include: { translations: { take: 1 } },
+        })
+        if (existingSong) {
+            return NextResponse.json({
+                songId: existingSong.id,
+                slug: existingSong.slug,
+                lyrics: existingSong.rawLyrics,
+                method: 'cache',
+                cached: true,
+                message: 'This song was previously translated! Loading cached result.',
+            })
+        }
+
         // Skip YouTube auto-captions entirely — they auto-translate SDK/Cape Flats Afrikaans
         // into broken English, making them useless. Download audio + use Groq Whisper instead.
         let audioPath: string | null = null

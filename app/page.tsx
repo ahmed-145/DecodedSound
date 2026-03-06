@@ -132,6 +132,10 @@ export default function Home() {
                     onTranslate={handleTranslate}
                     onAudioUpload={handleAudioUpload}
                     onYouTubeExtract={handleYouTubeExtract}
+                    onClear={() => {
+                        setLyrics(''); setTitle(''); setArtist(''); setYoutubeUrl('')
+                        setTranscription(''); setError(''); setGenreWarning(null)
+                    }}
                     genreWarning={genreWarning}
                     onGenreOverride={() => handleTranslate(true)}
                     onGenreDismiss={() => setGenreWarning(null)}

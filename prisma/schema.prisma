@@ -123,6 +123,7 @@ model Rating {
   ip        String?
   createdAt DateTime @default(now())
 
+  @@unique([songId, ip])
   @@index([songId])
 }
 

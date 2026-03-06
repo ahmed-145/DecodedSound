@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
         candidates,
         flags,
         recentSongs,
+        lowRatedSongs,
     ] = await Promise.all([
         prisma.song.count(),
         prisma.translation.count(),
@@ -45,6 +46,16 @@ export async function GET(req: NextRequest) {
             take: 10,
             select: { id: true, title: true, artist: true, slug: true, createdAt: true, inputType: true },
         }),
+        // PRD US-15: songs with average rating below 3 stars flagged for admin review
+        prisma.$queryRaw`
+            SELECT s.id, s.title, s.artist, s.slug, ROUND(AVG(r.value)::numeric, 1) as "avgRating", COUNT(r.id)::int as "ratingCount"
+            FROM "Song" s
+            JOIN "Rating" r ON r."songId" = s.id
+            GROUP BY s.id
+            HAVING AVG(r.value) < 3
+            ORDER BY AVG(r.value) ASC
+            LIMIT 20
+        `,
     ])
 
     return NextResponse.json({
@@ -52,6 +63,7 @@ export async function GET(req: NextRequest) {
         candidates,
         flags,
         recentSongs,
+        lowRatedSongs,
     })
 }
 

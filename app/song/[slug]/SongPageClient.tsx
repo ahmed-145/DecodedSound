@@ -56,19 +56,47 @@ function StarRating({ songId, current, count }: { songId: string; current: numbe
     )
 }
 
+// KB tooltip lookup map
+interface KBTerm { term: string; definition: string }
+
+function SlangPill({ term, kbMap }: { term: string; kbMap: Map<string, string> }) {
+    const def = kbMap.get(term.toLowerCase())
+    return (
+        <span className="relative group inline-block">
+            <span className={`text-xs px-1.5 py-0.5 rounded border cursor-help ${def
+                ? 'bg-ds-accent/10 text-ds-accent-light border-ds-accent/20'
+                : 'bg-yellow-500/10 text-yellow-300 border-yellow-500/20'}`}>
+                {term}
+            </span>
+            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg bg-ds-card border border-ds-border text-xs text-white/90 whitespace-normal max-w-[250px] w-max opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-20 shadow-xl">
+                {def || 'Not in our dictionary yet — help us define it!'}
+            </span>
+        </span>
+    )
+}
+
 export default function SongPageClient({ slug }: { slug: string }) {
     const [song, setSong] = useState<Song | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [activeTab, setActiveTab] = useState(0)
     const [copied, setCopied] = useState(false)
+    const [kbMap, setKbMap] = useState<Map<string, string>>(new Map())
 
     useEffect(() => {
-        fetch(`/api/songs/${slug}`)
-            .then(r => r.json())
-            .then(d => { if (d.error) setError(d.error); else setSong(d) })
-            .catch(() => setError('Failed to load song.'))
-            .finally(() => setLoading(false))
+        // Fetch song + KB data in parallel
+        Promise.all([
+            fetch(`/api/songs/${slug}`).then(r => r.json()),
+            fetch('/api/kb?limit=500').then(r => r.json()).catch(() => ({ entries: [] })),
+        ]).then(([songData, kbData]) => {
+            if (songData.error) setError(songData.error)
+            else setSong(songData)
+            const map = new Map<string, string>()
+            for (const e of (kbData.entries || [])) {
+                map.set(e.term.toLowerCase(), e.definition)
+            }
+            setKbMap(map)
+        }).catch(() => setError('Failed to load song.')).finally(() => setLoading(false))
     }, [slug])
 
     const copyLink = () => {
@@ -161,15 +189,13 @@ export default function SongPageClient({ slug }: { slug: string }) {
                         {activeTab === 1 && (
                             <div className="space-y-3">
                                 {(t.lineByLine as LineTranslation[]).map((line, i) => (
-                                    <div key={i} className="grid grid-cols-2 gap-4 py-3 border-b border-ds-border/50 last:border-0">
+                                    <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-4 py-3 border-b border-ds-border/50 last:border-0">
                                         <div className="font-mono text-sm text-white/60 leading-relaxed">
                                             {line.original}
                                             {line.flaggedTerms.length > 0 && (
                                                 <div className="flex flex-wrap gap-1 mt-1">
                                                     {line.flaggedTerms.map(term => (
-                                                        <span key={term} className="text-xs px-1.5 py-0.5 rounded bg-ds-accent/10 text-ds-accent-light border border-ds-accent/20">
-                                                            {term}
-                                                        </span>
+                                                        <SlangPill key={term} term={term} kbMap={kbMap} />
                                                     ))}
                                                 </div>
                                             )}
