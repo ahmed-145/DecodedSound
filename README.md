@@ -240,28 +240,7 @@ npm run dev
 
 ## API Reference
 
-| Method | Endpoint | Description | Auth |
-|---|---|---|---|
-| `POST` | `/api/translate` | Translate lyrics → 4-panel JSON | Rate limited |
-| `POST` | `/api/audio` | Transcribe audio via Whisper | Rate limited |
-| `POST` | `/api/youtube` | YouTube → yt-dlp → Whisper (cached) | Rate limited |
-| `POST` | `/api/reverse` | English → SDK reverse translation | Rate limited |
-| `GET` | `/api/songs` | Song library (`?q=search&page=1`) | Public |
-| `GET` | `/api/songs/[slug]` | Single song + translation + rating | Public |
-| `GET` | `/api/kb` | Browse approved KB terms | Public |
-| `POST` | `/api/kb` | Submit community term | Rate limited |
-| `POST` | `/api/kb/[id]/flag` | Flag a KB entry (3 flags = auto-downgrade) | Public |
-| `POST` | `/api/ratings` | Rate 1-5 stars (IP-deduplicated) | Public |
-| `GET` | `/api/admin` | Dashboard stats + moderation data | `x-admin-secret` |
-| `POST` | `/api/admin` | Approve/reject candidates, delete flags | `x-admin-secret` |
-
-### Rate Limits (per IP)
-
-| Tier | Window | Max | Routes |
-|---|---|---|---|
-| Heavy | 60s | 10 | translate, reverse |
-| Audio | 60s | 5 | audio, youtube |
-| Write | 60s | 30 | kb, ratings |
+Full route docs, request/response shapes, and rate limit details → [`docs/setup.md`](docs/setup.md)
 
 ---
 
