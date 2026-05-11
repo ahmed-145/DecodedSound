@@ -96,7 +96,7 @@ export default function SongPageClient({ slug }: { slug: string }) {
                 map.set(e.term.toLowerCase(), e.definition)
             }
             setKbMap(map)
-        }).catch(() => setError('Failed to load song.')).finally(() => setLoading(false))
+        }).catch(() => setError('NETWORK_ERROR')).finally(() => setLoading(false))
     }, [slug])
 
     const copyLink = () => {
@@ -112,14 +112,36 @@ export default function SongPageClient({ slug }: { slug: string }) {
         </div>
     )
 
-    if (error || !song) return (
-        <div className="max-w-4xl mx-auto px-4 pt-24 text-center">
-            <div className="text-6xl mb-4">🔇</div>
-            <h2 className="text-xl font-semibold text-white mb-2">Song not found</h2>
-            <p className="text-white/40 mb-6">{error}</p>
-            <Link href="/" className="text-ds-accent-light hover:underline">← Back to translate</Link>
+    if (error === 'NETWORK_ERROR' || (error && !song)) return (
+        <div className="max-w-4xl mx-auto px-4 pt-16 sm:pt-24 text-center">
+            {error === 'NETWORK_ERROR' ? (
+                <>
+                    <div className="text-6xl mb-4">⚡</div>
+                    <h2 className="text-xl font-semibold text-white mb-2">Network error</h2>
+                    <p className="text-white/40 mb-6 text-sm">Couldn&apos;t reach the server. Check your connection.</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-6 py-2.5 rounded-lg bg-ds-accent/10 border border-ds-accent/30 text-ds-accent-light text-sm hover:bg-ds-accent/20 transition-all"
+                    >
+                        Retry
+                    </button>
+                </>
+            ) : (
+                <>
+                    <div className="text-6xl mb-4">🔇</div>
+                    <h2 className="text-xl font-semibold text-white mb-2">Song not found</h2>
+                    <p className="text-white/40 mb-6 text-sm">
+                        {error?.includes('not found') || error?.includes('404')
+                            ? 'This song may have been removed or the link is broken.'
+                            : error}
+                    </p>
+                </>
+            )}
+            <Link href="/" className="text-ds-accent-light hover:underline text-sm">← Back to translate</Link>
         </div>
     )
+
+    if (!song) return null  // narrowing guard — song is guaranteed non-null here
 
     const t = song.translations[0]
     const panels = [
@@ -130,15 +152,15 @@ export default function SongPageClient({ slug }: { slug: string }) {
     ]
 
     return (
-        <main className="max-w-4xl mx-auto px-4 pt-8 pb-24">
+        <main className="max-w-4xl mx-auto px-4 pt-6 sm:pt-8 pb-24">
             {/* Header */}
-            <div className="mb-8 animate-fade-up">
-                <Link href="/" className="text-white/30 text-sm hover:text-white/60 transition-colors mb-4 inline-block">
+            <div className="mb-6 sm:mb-8 animate-fade-up">
+                <Link href="/" className="text-white/30 text-sm hover:text-white/60 transition-colors mb-3 sm:mb-4 inline-block">
                     ← New translation
                 </Link>
-                <h1 className="text-3xl font-bold text-white">{song.title}</h1>
-                {song.artist && <p className="text-white/50 mt-1">{song.artist}</p>}
-                <div className="flex flex-wrap items-center gap-3 mt-3">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">{song.title}</h1>
+                {song.artist && <p className="text-white/50 mt-1 text-sm sm:text-base">{song.artist}</p>}
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3">
                     {t && <>
                         <ConfidenceBadge score={t.overallConfidence} label="Confidence" />
                         <ConfidenceBadge score={t.genreConfidence} label="SDK match" />
@@ -148,7 +170,7 @@ export default function SongPageClient({ slug }: { slug: string }) {
                     </span>
                     <button id="btn-share" onClick={copyLink}
                         className="ml-auto text-xs text-white/40 hover:text-ds-accent-light transition-colors flex items-center gap-1">
-                        {copied ? '✅ Copied!' : '🔗 Share link'}
+                        {copied ? '✅ Copied!' : '🔗 Share'}
                     </button>
                 </div>
                 <div className="mt-3">
@@ -161,11 +183,12 @@ export default function SongPageClient({ slug }: { slug: string }) {
                 <div className="ds-card p-8 text-center">
                     <div className="text-4xl mb-3">⏳</div>
                     <p className="text-white/50">Translation is being processed…</p>
+                    <p className="text-white/25 text-sm mt-2">This can take 30–60 seconds for audio/YouTube. Refresh in a moment.</p>
                 </div>
             ) : (
                 <div className="ds-card animate-fade-up">
-                    {/* Panel tabs */}
-                    <div className="flex border-b border-ds-border overflow-x-auto">
+                    {/* Panel tabs — horizontally scrollable on mobile */}
+                    <div className="flex border-b border-ds-border overflow-x-auto scrollbar-none">
                         {panels.map((p, i) => (
                             <button key={p.id} id={p.id} onClick={() => setActiveTab(i)}
                                 className={`flex-1 min-w-fit px-4 py-3.5 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px flex items-center justify-center gap-1.5

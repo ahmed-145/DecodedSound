@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from 'react'
 
 interface Stats {
     totalSongs: number; totalTranslations: number; totalKB: number
-    pendingCandidates: number; pendingFlags: number
+    // BUG-12 fix: API returns `totalFlags`, not `pendingFlags` — was showing 0 always
+    pendingCandidates: number; totalFlags: number
 }
 interface Candidate {
     id: string; term: string; provisionalDefinition: string; confidence: number
@@ -27,7 +28,7 @@ export default function AdminPage() {
     const [authed, setAuthed] = useState(false)
     const [secret, setSecret] = useState('')
     const [loading, setLoading] = useState(false)
-    const [stats, setStats] = useState<Stats & { totalFlags: number } | null>(null)
+    const [stats, setStats] = useState<Stats | null>(null)
     const [candidates, setCandidates] = useState<Candidate[]>([])
     const [flags, setFlags] = useState<Flag[]>([])
     const [recentSongs, setRecentSongs] = useState<RecentSong[]>([])

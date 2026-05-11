@@ -23,6 +23,12 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Lyrics too short' }, { status: 400 })
         }
 
+        // BUG-6: No max length check on lyrics. A malicious actor could send a 100k token
+        // lyrics string and burn Groq quota + cause timeouts. Cap at 20,000 chars (~5000 tokens).
+        if (lyrics.length > 20_000) {
+            return NextResponse.json({ error: 'Lyrics too long — max 20,000 characters.' }, { status: 400 })
+        }
+
         // PRD Section 10, Step 7: genre detection before translation
         // Run genre check + KB lookup in parallel to save time
         const [genre, kbEntries] = await Promise.all([
@@ -52,13 +58,17 @@ export async function POST(req: NextRequest) {
         const result = await translateLyrics(lyrics, kbContext)
         const processingTimeMs = Date.now() - t0
 
-        const songTitle = title || 'Untitled'
-        const slug = generateSlug(songTitle, artist)
+        const songTitle = title?.trim() || 'Untitled'
+        // BUG-7: slug collision — if the same song is submitted twice with the same title+artist,
+        // generateSlug appends nanoid(6) which prevents DB unique violation. ✓ already handled.
+        // BUT: title was not trimmed before use — blank-space-only titles passed as "   " would
+        // be stored as-is. Fixed by trimming.
+        const slug = generateSlug(songTitle, artist?.trim())
 
         const song = await prisma.song.create({
             data: {
                 title: songTitle,
-                artist: artist ?? null,
+                artist: artist?.trim() ?? null,
                 inputType: 'TYPED',
                 rawLyrics: lyrics,
                 slug,
