@@ -42,9 +42,8 @@ DATABASE_URL="postgresql://decodedsound:decodedsound_pass@localhost:5433/decoded
   npx prisma migrate deploy
 
 # 6. Seed the KB
-DATABASE_URL="postgresql://decodedsound:decodedsound_pass@localhost:5433/decodedsound" \
-  npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed.ts
-# Expected: ✅ KB seeded successfully! (20 terms)
+npx tsx prisma/seed.ts
+# Expected: ✅ KB seeded successfully! (502 terms)
 
 # 7. Start dev server
 npm run dev
@@ -83,7 +82,7 @@ DATABASE_URL="..." npx ts-node --compiler-options '{"module":"CommonJS"}' prisma
 | `npm run dev` | Start Next.js dev server |
 | `npm run build` | Generate Prisma client + build Next.js |
 | `npm run db:migrate` | Create + apply new Prisma migration |
-| `npm run db:seed` | Seed KB with initial 20 terms |
+| `npm run db:seed` | Seed KB with 502 terms |
 | `npm run db:studio` | Open Prisma Studio on :5555 |
 | `npm run docker:up` | Start Docker Postgres |
 | `npm run docker:down` | Stop Docker Postgres |
@@ -98,27 +97,20 @@ DATABASE_URL="..." npx ts-node --compiler-options '{"module":"CommonJS"}' prisma
 # Database (Docker on 5433 — local Postgres occupies 5432)
 DATABASE_URL="postgresql://decodedsound:decodedsound_pass@localhost:5433/decodedsound"
 
-# AI APIs (both free tier, both needed)
-GEMINI_API_KEY=""      # kept for future use, not currently used for translation
-GROQ_API_KEY=""        # primary — translation (LLaMA) + transcription (Whisper)
+# AI
+GROQ_API_KEY=""        # translation (LLaMA 3.3 70B) + transcription (Whisper Large v3)
 
-# App
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
+# Security
 WORKER_SECRET="decodedsound_worker_secret_local"
-
-# Supabase (production only — leave blank locally)
-NEXT_PUBLIC_SUPABASE_URL=""
-NEXT_PUBLIC_SUPABASE_ANON_KEY=""
-SUPABASE_SERVICE_ROLE_KEY=""
+ADMIN_SECRET="decodedsound_admin_secret_local"
 ```
 
 | Variable | Used in |
 |---|---|
 | `DATABASE_URL` | `lib/prisma.ts`, all Prisma CLI commands |
 | `GROQ_API_KEY` | `lib/ai.ts` → translation + transcription |
-| `GEMINI_API_KEY` | `lib/ai.ts` (reserved, not active) |
 | `WORKER_SECRET` | `app/api/worker/route.ts` — header check in production |
-| `NEXT_PUBLIC_APP_URL` | Share URL generation |
+| `ADMIN_SECRET` | `app/admin/page.tsx` + `app/api/admin/route.ts` — protects admin panel |
 
 > Variables prefixed `NEXT_PUBLIC_` are exposed to the browser. Never prefix secret keys with it.
 
@@ -249,10 +241,12 @@ Rate a song 1–5 stars. One per IP per song (upsert on re-rate).
 ### `GET /api/worker`
 Cron endpoint — processes up to 5 PENDING jobs.
 
-**Headers (production only):** `x-worker-secret: <WORKER_SECRET>`
+**Headers (production):**
+- `x-worker-secret: <WORKER_SECRET>` (from manual calls)
+- OR `Authorization: Bearer <token>` (Vercel cron sends this automatically)
 **Response:** `{ "processed": 5, "succeeded": 4, "failed": 1 }`
 
-Configured in `vercel.json` to run every 60 seconds.
+Configured in `vercel.json` to run every 60 seconds. Max 3 retries per job before marking FAILED.
 
 ---
 

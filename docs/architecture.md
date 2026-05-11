@@ -12,7 +12,7 @@
                             │ HTTP
                             ▼
 ┌────────────────────────────────────────────────────────────────┐
-│                    Next.js 14 App Router                       │
+│                    Next.js 15 App Router                       │
 │                                                                │
 │  ┌─────────────────┐    ┌──────────────────────────────────┐  │
 │  │   UI Pages       │    │         API Routes               │  │
@@ -26,6 +26,9 @@
 │                          │  POST /api/kb                    │  │
 │                          │  POST /api/kb/[id]/flag          │  │
 │                          │  POST /api/ratings               │  │
+│                          │  POST /api/reverse               │  │
+│                          │  GET  /api/admin                 │  │
+│                          │  POST /api/admin                 │  │
 │                          │  GET  /api/worker (cron)         │  │
 │                          └──────────────┬───────────────────┘  │
 └─────────────────────────────────────────┼──────────────────────┘
@@ -288,7 +291,24 @@ DATABASE_URL="..." npx prisma studio
 
 | | Local dev | Production |
 |---|---|---|
-| Database | Docker Postgres :5433 | Supabase Postgres |
-| File storage | Local disk | Supabase Storage |
+| Database | Docker Postgres :5433 | Supabase Postgres (session mode, port 5432) |
 | AI | Groq APIs | Groq APIs (same) |
-| yt-dlp | `/home/ahmeed/.local/bin/yt-dlp` | `/usr/local/bin/yt-dlp` or in PATH |
+| yt-dlp | `~/.local/bin/yt-dlp` | `/usr/local/bin/yt-dlp` or PATH |
+| Admin auth | `ADMIN_SECRET=local_secret` | Strong secret via `openssl rand -hex 32` |
+| Cron auth | `WORKER_SECRET=local_secret` | Strong secret OR Vercel OIDC Bearer token |
+
+---
+
+## Rate Limiting
+
+In-memory sliding-window limiter (`lib/rateLimit.ts`). Per-IP, three tiers:
+
+| Tier | Routes | Window | Max Requests |
+|---|---|---|---|
+| `translateLimiter` | `/api/translate`, `/api/reverse` | 60s | 10 |
+| `audioLimiter` | `/api/audio`, `/api/youtube` | 60s | 5 |
+| `writeLimiter` | `/api/kb` (POST) | 60s | 30 |
+
+Limiters use `setInterval` with `.unref()` so the cleanup timer doesn't block Node.js process exit.
+
+On 429: returns `{ error: 'Too many requests — please wait a moment.' }` with HTTP 429.

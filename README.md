@@ -235,7 +235,6 @@ npm run dev
 | `GROQ_API_KEY` | ✅ | Powers translation (LLaMA) + transcription (Whisper) |
 | `ADMIN_SECRET` | Prod only | Protects `/admin` panel |
 | `WORKER_SECRET` | Prod only | Protects cron endpoint |
-| `NEXT_PUBLIC_APP_URL` | No | Base URL for share links |
 
 ---
 
@@ -297,7 +296,7 @@ git push origin main
 
 ## PRD Status
 
-> Built against PRD v3.3 · Currently in **Weeks 7-8 (KB & Community)** with Phase 2 completed ahead of schedule
+> Built against PRD v3.3 · **v1.0 shipped** ✅
 
 | Phase | Status |
 |---|---|
@@ -306,13 +305,10 @@ git push origin main
 | Phase 2 — English → SDK reverse translation | ✅ Complete (ahead of schedule) |
 | Admin panel + rate limiting | ✅ Complete (not in original PRD) |
 | KB seeded to 500+ terms | ✅ 502 terms |
-| God-mode test pass | ✅ 17/17 pages, 10/10 APIs |
-
-### Remaining for v1.0 Launch
-
-- [ ] Error states (PRD §6 — 10 specific scenarios)
-- [ ] Mobile responsive polish
-- [ ] Vercel + Supabase deployment
+| Error handling — all 10 PRD §6 scenarios | ✅ Complete |
+| Mobile responsive polish | ✅ Complete |
+| Vercel + Supabase deployment config | ✅ Complete |
+| God-mode bug audit | ✅ 12 bugs found & fixed · 12/12 APIs · 17/17 pages |
 
 ### Roadmap (Post-Launch)
 

@@ -701,12 +701,147 @@ Production build (`npm run build`) caught 5 additional issues:
 | Phase 2 | English → SDK reverse translation | ✅ Complete (ahead of schedule) |
 | Admin + moderation | Admin panel, rate limiting, KB moderation | ✅ Complete |
 | KB seeding | 500+ terms at launch | ✅ 502 terms seeded |
-| God-mode test | Build, type check, API, UI | ✅ All pass |
-| Phase 3 | Mobile (React Native) | 🔲 Not started |
-| Phase 4 | Monetisation, auth, B2B API | 🔲 Not started |
+| Error handling | PRD §6 — all 10 scenarios | ✅ Complete |
+| Mobile polish | Responsive layouts, mobile nav | ✅ Complete |
+| Deployment config | Vercel + Supabase | ✅ Complete |
+| God-mode audit | 12 bugs found & fixed | ✅ 12/12 APIs · 17/17 pages |
+| Phase 3 | Mobile (React Native) | 🔲 Post-launch |
+| Phase 4 | Monetisation, auth, B2B API | 🔲 Post-launch |
 
-**Remaining for v1.0 launch:**
-- Error states (PRD §6 — 10 specific scenarios)
-- Mobile responsive polish
-- Vercel + Supabase deployment
+**v1.0 is shipped.** ✅
+
+---
+
+## Session 6 — God Mode Audit + v1.0 Launch
+
+### What We Did
+
+Final pre-launch pass: full god-mode audit of every API route, component, schema constraint, and worker logic. Simultaneously closed all remaining PRD §6 error handling items and deployment config.
+
+---
+
+### God-Mode Audit — 12 Bugs Found & Fixed
+
+Full systematic audit: read every API route, component, and lib file. Ran `tsc --noEmit` and `npm run build` at each stage.
+
+#### Critical (Production-killers)
+
+**BUG-9 — Vercel cron always 401'd in production**
+- `/api/worker` only accepted `x-worker-secret` header
+- Vercel cron sends `Authorization: Bearer <OIDC token>` — not our custom header
+- Result: **cron never fired in production** — background jobs never ran
+- Fix: also accept requests with `Authorization: Bearer` prefix (Vercel-originated)
+
+**BUG-11 — YouTube cache hit left spinner on forever**
+- Cached YouTube URL returned `{ cached: true, slug }` — frontend set lyrics but never redirected
+- Result: loading spinner stayed on screen with no way to proceed
+- Fix: cache hit now calls `router.push(/song/${slug})` immediately
+
+**BUG-8 — Worker job retry logic off-by-one**
+- Worker incremented `attempts` then checked `job.attempts >= 2` using the **pre-increment** DB value
+- Result: jobs ran a 4th time instead of marking FAILED after 3 attempts
+- Fix: use `updated.attempts` (post-increment) for the FAILED threshold
+
+**BUG-2 — KB POST runtime crash on every contribution**
+- `req.json()` called to parse body, then `req.text()` called for honeypot check
+- Node.js `Request` body can only be read once — second read always returns empty string / throws
+- Fix: parse body once as JSON, extract honeypot field from parsed object
+
+#### High (Incorrect behaviour)
+
+**BUG-3 — KB contributions had zero rate limiting**
+- `writeLimiter` was imported at the top of `kb/route.ts` but never applied to the POST handler
+- Result: bot-spammable contribution endpoint
+- Fix: added `writeLimiter.check(ip)` guard
+
+**BUG-5 — Whisper 429/413 silently swallowed**
+- Audio route wrapped all errors in a generic catch → "Transcription failed."
+- Groq Whisper rate limit (429) and file too large (413) showed identical generic message
+- Fix: inner try/catch around `transcribeAudio()` surfaces Groq-specific errors with correct HTTP status
+
+**BUG-6 — No max length on lyrics**
+- `/api/translate` had no upper limit on lyrics payload
+- A 100k character string would burn Groq quota and likely timeout
+- Fix: 20,000 character cap (≈5,000 tokens) — returned as 400
+
+**BUG-12 — Admin Flags stat always showed 0**
+- `Stats` interface declared `pendingFlags: number` but API returns `totalFlags`
+- TypeScript didn't catch this because the state was typed as `Stats & { totalFlags: number }` (redundant intersection)
+- Fix: corrected interface field name, cleaned up intersection type
+
+#### Medium (UX/Data quality)
+
+**BUG-1 — `/api/kb?limit=` uncapped**
+- `parseInt(searchParams.get('limit') || '50')` with no ceiling
+- `?limit=999999` would hit DB with a single massive query
+- Fix: `Math.min(parsed, 500)`
+
+**BUG-7 — title/artist not trimmed before DB insert**
+- Whitespace-only titles (e.g. `"   "`) passed the `if (!lyrics)` check and were stored as-is
+- Fix: `.trim()` applied before `generateSlug` and `song.create()`
+
+**BUG-4 — No input length validation on KB contributions**
+- Terms and definitions had no length cap — DB text fields are unlimited
+- Fix: 100 char cap on term, 1,000 char cap on definition
+
+**BUG-10 — Genre confidence math inverted in UI**
+- Warning showed `(1 - confidence) * 100` with label "SDK confidence"
+- When confidence = 0.9 (90% sure it's NOT SDK), displayed "10% SDK confidence" — correct but confusing
+- Fix: display `confidence * 100` with explicit "SDK confidence: X%" label
+
+---
+
+### Error Handling — PRD §6 (All 10 Scenarios)
+
+| Scenario | Where Handled |
+|---|---|
+| Rate limit (429) | `page.tsx` classifyError → user-friendly message + 30s tip |
+| AI model down (500/404) | `page.tsx` classifyError → "temporarily unavailable" |
+| Network failure | `SongPageClient`, `LibraryPage`, `KBPage` → retry button |
+| Song not found vs broken link | `SongPageClient` → distinguishes 404 from other errors |
+| File too large (>50MB) | `page.tsx` client-side guard before upload |
+| Invalid YouTube URL | `page.tsx` URL pattern check before fetch |
+| Private/unavailable YouTube | `page.tsx` specific message |
+| yt-dlp not installed | `page.tsx` inline install command shown |
+| Empty library / no search results | `LibraryPage` two distinct empty states |
+| KB contribution failure | `KBPage` error shown in modal |
+
+---
+
+### Mobile Responsive Polish
+
+- **Nav:** secondary links (Slang KB, Badge) hidden on mobile, Library always visible
+- **Hero:** `text-4xl sm:text-5xl md:text-6xl` scaling
+- **Mode toggle:** full-width on mobile, auto-width on sm+
+- **Input tabs:** shortened labels on mobile (`Lyrics` / `Audio` / `YT`), drag-and-drop audio
+- **Song page:** panel tabs horizontally scrollable (`overflow-x-auto scrollbar-none`)
+- **All pages:** `px-4 pt-8 sm:pt-12`, `overflow-x-hidden` on body
+
+---
+
+### Deployment Config
+
+**`vercel.json`** — per-route function timeouts:
+| Route | Timeout | Why |
+|---|---|---|
+| `/api/audio` | 60s | Whisper transcription |
+| `/api/youtube` | 120s | yt-dlp download + Whisper |
+| `/api/worker` | 300s | Up to 5 jobs × ~60s each |
+| `/api/translate`, `/api/reverse` | 30s | LLaMA inference |
+
+Security headers added on all `/api/*` routes: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`.
+
+**`.env.example`** — added with production checklist:
+- Supabase session mode note (port 5432 not 6543 — Prisma requires session mode)
+- `openssl rand -hex 32` commands for secret generation
+- Migration + seed steps
+- Cron verification path in Vercel dashboard
+
+---
+
+### Session 6 Commit
+
+| Commit | Files | Message |
+|--------|-------|---------|
+| `a2105be` | 12 files, +712 −181 | fix: god mode audit — 12 bugs fixed, v1.0 launch-ready |
 
