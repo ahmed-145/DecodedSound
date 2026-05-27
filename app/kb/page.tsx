@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
+import { termToSlug } from '@/lib/utils'
 
 interface KBEntry {
     id: string; term: string; definition: string; origin: string | null
@@ -177,7 +178,12 @@ export default function KBPage() {
                     {entries.map(e => (
                         <div key={e.id} className="ds-card p-4 hover:border-ds-accent/20 transition-colors group">
                             <div className="flex items-start justify-between gap-2">
-                                <span className="font-mono text-ds-accent-light font-semibold">{e.term}</span>
+                                <Link
+                                    href={`/kb/${termToSlug(e.term)}`}
+                                    className="font-mono text-ds-accent-light font-semibold hover:underline"
+                                >
+                                    {e.term}
+                                </Link>
                                 <div className="flex items-center gap-2 shrink-0">
                                     <span className={`text-xs font-mono ${e.confidence >= 0.85 ? 'text-emerald-400' : e.confidence >= 0.6 ? 'text-amber-400' : 'text-red-400'}`}>
                                         {Math.round(e.confidence * 100)}%
