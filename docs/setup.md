@@ -42,12 +42,12 @@ DATABASE_URL="postgresql://decodedsound:decodedsound_pass@localhost:5433/decoded
   npx prisma migrate deploy
 
 # 6. Seed the KB
-npx tsx prisma/seed.ts
+npm run db:seed
 # Expected: ✅ KB seeded successfully! (502 terms)
 
 # 7. Start dev server
 npm run dev
-# Expected: ▲ Next.js 14 · Local: http://localhost:3000 · Ready in 2.3s
+# Expected: ▲ Next.js 15 · Local: http://localhost:3000 · Ready in 2.3s
 ```
 
 ---

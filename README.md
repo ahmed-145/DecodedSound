@@ -220,7 +220,7 @@ docker compose up -d
 
 # 5. Run migrations + seed 502 KB terms
 npx prisma migrate deploy
-npx tsx prisma/seed.ts
+npm run db:seed
 
 # 6. Start dev server
 npm run dev
