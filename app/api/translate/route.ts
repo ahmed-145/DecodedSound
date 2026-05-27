@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { translateLyrics, detectGenre } from '@/lib/ai'
+import { translateLyrics, detectGenre, SOURCE_PROFILES } from '@/lib/ai'
 import { generateSlug } from '@/lib/utils'
 import { translateLimiter } from '@/lib/rateLimit'
 
@@ -12,11 +12,12 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json()
-        const { lyrics, title, artist, overrideGenreWarning } = body as {
+        const { lyrics, title, artist, overrideGenreWarning, lang } = body as {
             lyrics: string
             title?: string
             artist?: string
             overrideGenreWarning?: boolean
+            lang?: string // source profile id (SPIKE): defaults to esdeekid
         }
 
         if (!lyrics || lyrics.trim().length < 10) {
@@ -29,33 +30,43 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Lyrics too long — max 20,000 characters.' }, { status: 400 })
         }
 
-        // PRD Section 10, Step 7: genre detection before translation
-        // Run genre check + KB lookup in parallel to save time
-        const [genre, kbEntries] = await Promise.all([
-            detectGenre(lyrics),
-            prisma.kBEntry.findMany({
-                where: { isApproved: true },
-                select: { term: true, definition: true },
-                take: 200,
-            }),
-        ])
+        const profile = SOURCE_PROFILES[lang ?? 'esdeekid'] ?? SOURCE_PROFILES.esdeekid
 
-        // >0.85 non-SDK AND user hasn't clicked "try anyway" → return genre warning
-        if (!genre.isSDK && genre.confidence > 0.85 && !overrideGenreWarning) {
-            return NextResponse.json({
-                genreWarning: true,
-                genreConfidence: genre.confidence,
-                message: "Doesn't look like SDK music — we specialise in SDK for now. Try anyway?",
-            }, { status: 200 })
+        // Genre detection + slang-KB only apply to the Esdeekid profile. Other
+        // source languages (e.g. Spanish) skip both: no warning, no KB injection.
+        let genre = { isSDK: true, confidence: 1 }
+        let kbContext: string | undefined
+
+        if (profile.usesKB) {
+            // PRD Section 10, Step 7: genre detection before translation
+            // Run genre check + KB lookup in parallel to save time
+            const [detected, kbEntries] = await Promise.all([
+                detectGenre(lyrics),
+                prisma.kBEntry.findMany({
+                    where: { isApproved: true },
+                    select: { term: true, definition: true },
+                    take: 200,
+                }),
+            ])
+            genre = detected
+
+            // >0.85 non-SDK AND user hasn't clicked "try anyway" → return genre warning
+            if (!genre.isSDK && genre.confidence > 0.85 && !overrideGenreWarning) {
+                return NextResponse.json({
+                    genreWarning: true,
+                    genreConfidence: genre.confidence,
+                    message: "Doesn't look like SDK music — we specialise in SDK for now. Try anyway?",
+                }, { status: 200 })
+            }
+
+            kbContext = kbEntries.length > 0
+                ? kbEntries.map(e => `${e.term}: ${e.definition}`).join('\n')
+                : undefined
         }
-
-        const kbContext = kbEntries.length > 0
-            ? kbEntries.map(e => `${e.term}: ${e.definition}`).join('\n')
-            : undefined
 
         // Track processing time (PRD Section 7.2 - processingTimeMs)
         const t0 = Date.now()
-        const result = await translateLyrics(lyrics, kbContext)
+        const result = await translateLyrics(lyrics, kbContext, profile.id)
         const processingTimeMs = Date.now() - t0
 
         const songTitle = title?.trim() || 'Untitled'

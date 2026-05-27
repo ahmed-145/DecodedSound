@@ -67,21 +67,101 @@ Rules:
 - Output strict JSON only. No markdown fences, no preamble, no trailing text.
 - If genreConfidence is low (English-looking lyrics), still complete all fields.`
 
+// ── Source Profiles (SPIKE: multi-language generalisation) ────────────────────
+// DecodedSound's engine generalises to any coded / low-resource music. A profile
+// describes one source: how to transcribe it, whether the slang KB applies, and
+// the specialist framing for the LLM. Esdeekid keeps its exact shipped prompt;
+// every other profile is generated from the shared template below.
+export interface SourceProfile {
+    id: string
+    label: string        // human-readable name
+    whisperLang: string  // ISO-639-1 code for Whisper transcription
+    usesKB: boolean      // inject the curated slang KB as context?
+    intro: string        // specialist system-prompt intro for this source
+    contextFocus: string // what the culturalContext panel should explain
+    genreLabel: string   // what genreConfidence measures for this source
+}
+
+export const SOURCE_PROFILES: Record<string, SourceProfile> = {
+    esdeekid: {
+        id: 'esdeekid',
+        label: 'SDK / Esdeekid (Cape Flats)',
+        whisperLang: 'af',
+        usesKB: true,
+        intro: '', // esdeekid uses the dedicated SYSTEM_PROMPT verbatim
+        contextFocus: 'the Cape Flats world behind the lyrics',
+        genreLabel: 'SDK/Cape Flats music',
+    },
+    spanish: {
+        id: 'spanish',
+        label: 'Spanish-language (reggaeton / Latin trap)',
+        whisperLang: 'es',
+        usesKB: false,
+        intro: `You are a cultural translation engine for Spanish-language music — reggaeton, Latin trap, and urbano (Bad Bunny, Feid, Karol G, etc.). You have deep knowledge of Caribbean/Puerto Rican Spanish, Dominican and Colombian slang, code-switching, and the cultural references of the urbano scene.`,
+        contextFocus: 'the cultural references, regional slang, and scene behind the lyrics',
+        genreLabel: 'Spanish-language urbano music',
+    },
+}
+
+// Generic prompt builder for non-Esdeekid profiles. Mirrors the JSON contract of
+// SYSTEM_PROMPT so the rest of the pipeline (parsing, panels) is unchanged.
+function buildGenericPrompt(profile: SourceProfile): string {
+    return `${profile.intro}
+
+You will receive raw song lyrics.
+
+YOU MUST ALWAYS respond with a single valid JSON object. NEVER write plain text, explanations, or markdown. Even if you are uncertain, fill every JSON key with your best attempt.
+
+The JSON object must have EXACTLY these keys:
+{
+  "plainTranslation": string,        // full song in plain, natural English prose
+  "lineByLine": [                    // one object per lyric line (skip blank lines)
+    {
+      "original": string,
+      "translation": string,
+      "flaggedTerms": string[]       // slang/idioms/culture-specific terms in this line
+    }
+  ],
+  "culturalContext": string,         // 2-4 paragraph narrative explaining ${profile.contextFocus} for someone with zero background
+  "unknownTerms": [                  // slang/idioms worth defining
+    {
+      "term": string,
+      "provisionalDefinition": string,
+      "confidence": number           // 0.0 - 1.0
+    }
+  ],
+  "genreConfidence": number,         // 0.0 - 1.0 how confident this is ${profile.genreLabel}
+  "overallConfidence": number        // 0.0 - 1.0 overall translation quality
+}
+
+Rules:
+- ALWAYS return JSON. Never return plain text or explanations of any kind.
+- Never hallucinate definitions. Include uncertain terms in unknownTerms with low confidence.
+- Output strict JSON only. No markdown fences, no preamble, no trailing text.`
+}
+
 // ── Translation via Groq LLaMA 3.3 70B ───────────────────────────────────────
 // 14,400 req/day free at 6,000 RPM. LLaMA 3.3 70B is excellent at JSON
 // instruction-following with response_format: json_object.
 export async function translateLyrics(
     lyrics: string,
-    kbContext?: string
+    kbContext?: string,
+    profileId: string = 'esdeekid'
 ): Promise<TranslationResult> {
-    const userMessage = kbContext
+    const profile = SOURCE_PROFILES[profileId] ?? SOURCE_PROFILES.esdeekid
+    const systemPrompt = profile.id === 'esdeekid'
+        ? SYSTEM_PROMPT
+        : buildGenericPrompt(profile)
+
+    // KB context only injected for profiles that use the slang KB (Esdeekid).
+    const userMessage = kbContext && profile.usesKB
         ? `KB CONTEXT:\n${kbContext}\n\nLYRICS:\n${lyrics}`
         : `LYRICS:\n${lyrics}`
 
     const completion = await groqClient.chat.completions.create({
         model: 'llama-3.3-70b-versatile',
         messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: systemPrompt },
             { role: 'user', content: userMessage },
         ],
         temperature: 0.3,
@@ -114,7 +194,11 @@ export async function translateLyrics(
 // ── Groq Whisper Transcription ────────────────────────────────────────────────
 // Note: Node.js 18 does NOT have a global `File`. We use Groq SDK's toFile() helper
 // which works on all Node versions and is the officially recommended approach.
-export async function transcribeAudio(audioBuffer: Buffer, filename: string): Promise<string> {
+export async function transcribeAudio(
+    audioBuffer: Buffer,
+    filename: string,
+    language: string = 'af' // default Afrikaans / Cape Flats — closest to SDK phonetics
+): Promise<string> {
     const mimeType = filename.endsWith('.mp3') ? 'audio/mpeg'
         : filename.endsWith('.wav') ? 'audio/wav'
             : filename.endsWith('.webm') ? 'audio/webm'
@@ -127,7 +211,7 @@ export async function transcribeAudio(audioBuffer: Buffer, filename: string): Pr
     const transcription = await groqClient.audio.transcriptions.create({
         file,
         model: 'whisper-large-v3',
-        language: 'af', // Afrikaans / Cape Flats — closest to SDK phonetics
+        language, // ISO-639-1 source code (per SourceProfile.whisperLang)
         response_format: 'json',
     })
 
