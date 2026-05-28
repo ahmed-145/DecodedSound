@@ -101,6 +101,8 @@ DecodedSound ships with **502 hand-curated slang terms** across 12 categories:
 
 > Core SDK slang · Money & hustle · People & reputation · Streets & places · Substances · Violence & danger · Gang culture & loyalty · Emotions · Music terms · Lifestyle · Cape Malay vocabulary · Prison gang terminology
 
+Every approved term is its own **public, indexable page** at `/kb/<term>` — server-rendered with Schema.org `DefinedTerm` structured data, canonical + OpenGraph tags, and listed in an auto-generated `sitemap.xml`. So when someone Googles *"what does kwaai mean"*, this can be the answer. ~500 crawlable pages of data that doesn't exist anywhere else.
+
 The KB is a **living system**, not a static dictionary:
 
 ```
@@ -121,7 +123,7 @@ User translates song
 ```
 ┌─────────────────────────────────────────────────────┐
 │                    Frontend (Next.js 15)             │
-│  /           /song/[slug]    /library    /kb  /admin │
+│  /  /song/[slug]  /library  /kb  /kb/[slug]  /admin  │
 └───────────────────────┬─────────────────────────────┘
                         │
 ┌───────────────────────▼─────────────────────────────┐
@@ -162,7 +164,12 @@ app/
 │   │   ├── page.tsx                # Dynamic OG metadata for social sharing
 │   │   └── SongPageClient.tsx      # 4-panel results + KB tooltips + ratings
 │   ├── library/page.tsx            # Song library with search + pagination
-│   ├── kb/page.tsx                 # KB browser + community contributions
+│   ├── kb/
+│   │   ├── page.tsx                # KB browser + community contributions
+│   │   ├── layout.tsx              # SEO metadata for the dictionary hub
+│   │   └── [slug]/page.tsx         # Public per-term page (ISR, JSON-LD, canonical)
+│   ├── sitemap.ts                  # Auto XML — all terms + public songs
+│   ├── robots.ts                   # Crawl rules + sitemap pointer
 │   ├── admin/page.tsx              # Admin dashboard + moderation + low-rated songs
 │   └── api/
 │       ├── translate/route.ts      # POST — lyrics → 4-panel translation
@@ -182,11 +189,13 @@ app/
 │   ├── StatsRow.tsx                # Stats display
 │   └── SlangPill.tsx               # KB term hover tooltip component
 ├── lib/
-│   ├── ai.ts                       # All AI calls (translate, reverse, genre detect)
+│   ├── ai.ts                       # All AI calls + SOURCE_PROFILES registry (multi-lang)
 │   ├── ytdlp.ts                    # yt-dlp wrapper with binary discovery
 │   ├── prisma.ts                   # Prisma client singleton
 │   ├── rateLimit.ts                # Sliding-window IP rate limiter (3 tiers)
-│   └── utils.ts                    # Slug generation, helpers
+│   └── utils.ts                    # Slug generation, termToSlug(), siteUrl(), helpers
+├── scripts/
+│   └── spike-translate.ts          # Multi-language engine spike (runs without Next/DB)
 ├── prisma/
 │   ├── schema.prisma               # 8 models, 4 enums, @@unique constraints
 │   └── seed.ts                     # 502 curated SDK/Kaaps slang terms
@@ -235,6 +244,7 @@ npm run dev
 | `GROQ_API_KEY` | ✅ | Powers translation (LLaMA) + transcription (Whisper) |
 | `ADMIN_SECRET` | Prod only | Protects `/admin` panel |
 | `WORKER_SECRET` | Prod only | Protects cron endpoint |
+| `NEXT_PUBLIC_SITE_URL` | Prod (SEO) | Canonical/sitemap/OG base URL — e.g. `https://yourdomain.com` |
 
 ---
 
@@ -252,6 +262,7 @@ Full route docs, request/response shapes, and rate limit details → [`docs/setu
 | `/song/[slug]` | **Song Result** | 4 translation panels, KB hover tooltips, star ratings, share, dynamic OG |
 | `/library` | **Song Library** | Search, pagination, confidence badges, rating display |
 | `/kb` | **Slang KB** | Browse 500+ terms, community contributions, flag system |
+| `/kb/[term]` | **Term Page** | Per-term definition page — SEO, JSON-LD DefinedTerm, related terms |
 | `/admin` | **Admin Panel** | Stats dashboard, KB candidate review, flag management, low-rated songs |
 
 ---
@@ -263,10 +274,11 @@ Full route docs, request/response shapes, and rate limit details → [`docs/setu
 git push origin main
 
 # 2. Import to Vercel → set env vars:
-#    DATABASE_URL    → Supabase/Neon connection string
-#    GROQ_API_KEY    → your Groq key
-#    ADMIN_SECRET    → any secret for admin auth
-#    WORKER_SECRET   → any secret for cron
+#    DATABASE_URL         → Supabase/Neon connection string
+#    GROQ_API_KEY         → your Groq key
+#    ADMIN_SECRET         → any secret for admin auth
+#    WORKER_SECRET        → any secret for cron
+#    NEXT_PUBLIC_SITE_URL → your production domain (for canonical + sitemap URLs)
 
 # 3. Deploy — cron worker pre-configured in vercel.json
 ```
@@ -288,6 +300,8 @@ git push origin main
 | Mobile responsive polish | ✅ Complete |
 | Vercel + Supabase deployment config | ✅ Complete |
 | God-mode bug audit | ✅ 12 bugs found & fixed · 12/12 APIs · 17/17 pages |
+| Public SEO slang dictionary | ✅ Per-term pages · sitemap.xml · robots.txt · JSON-LD DefinedTerm |
+| Multi-language engine spike | 🧪 SOURCE_PROFILES registry · Spanish/reggaeton profile · `scripts/spike-translate.ts` |
 
 ### Roadmap (Post-Launch)
 
